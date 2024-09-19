@@ -6,7 +6,7 @@
  - Terracciano Raffaele
  - Verde Francesco
 
-# Requirements
+# Requisiti
 - L'applicazione deve essere responsive, ovvero deve reagire al ridimensionamento della finestra e adattare i componenti.
 - Il dato prelevato e' un numero immaginario e viene visualizzato in due grafici:
     - Diagramma di Nyquist (modulo e fase uniti in un unico grafico)
@@ -38,7 +38,7 @@
 
 
     
-## Specifications
+## Specifiche
 ### Singola misura
 - Il range di frequenza e' compreso tra 1 Hz a 100 Hz, incrementi di 1 (numero intero)
 
