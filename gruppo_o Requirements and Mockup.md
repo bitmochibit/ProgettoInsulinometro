@@ -6,49 +6,52 @@
  - Terracciano Raffaele
  - Verde Francesco
 
-# Requisiti
-- L'applicazione deve essere responsiva, ovvero deve reagire al ridimensionamento della finestra e adattare i componenti.
-- Il dato prelevato è un numero immaginario e viene visualizzato in due grafici:
-    - Diagramma di Nyquist (modulo e fase uniti in un unico grafico)
-    - Diagramma di Bode (modulo e fase in due grafici separati)
-- Stampare i dati in tempo reale anche in formato numerico
-- Pulsante per iniziare il prelievo dei dati
-- Pulsante per fermare il prelievo dei dati
-- Pulsante per svuotare il buffer sul dispositivo
-- Pulsante per marcare un punto di riferimento (utile per confrontare i dati)
-- 3 modalità di campionamento:
-    - [Singola misura](#Singola-misura) (frequenza fissa : regolabile)
-    - [Range di frequenze parametrico](#range-di-frequenze-parametrico) (frequenza iniziale, frequenza finale)
-    - [Modalità sweep](#modalità-sweep): Campionamento in un breve intervallo
-        - Barra di caricamento per visualizzare lo stato del campionamento (avanzamento in misura)
-- Connettività con il dispositivo
-    - Bluetooth (BLE) o Seriale
-    - Possibilità di scegliere quale metodo di connessione usare
-    - Possibilità di scegliere il dispositivo con cui connettersi (filtrato) (magari avere in alto "dispositivi utilizzati di recente")
-    - Possibilità di disconnettersi dal dispositivo
-    - Possibilità di riconnettersi al dispositivo
-    - Possibilità di visualizzare lo stato della connessione
-- Fail-safe: Verificare il livello di carica della batteria del dispositivo prima di iniziare il campionamento
-- Possibilità di esportare i dati in formato Excel o CSV
-- Possibilità di iniziare un nuovo campionamento senza chiudere l'applicazione
-- Aggiungere un visualizattore della batteria del dispositivo
-- Aggiungere un visualizzatore della qualità del segnale
-- Quando la misurazione riprende dalla frequenza iniziale, il grafico si ripete preservando SOLO quello subito precedente (più sbiadito) sul quale viene mostrata la nuova misurazione per confrontare i dati
-- Punti diversi per l'acquisizione della fase (punto 1, punto 2, differenza)
+# Caratteristiche dell'applicazione
+## Esperienza per l'utente
+- **App responsiva**: ogni componente si adatta al ridimensionamento della finestra
+- **Grafici adattivi**: ogni grafico deve essere in grado di accomodare i dati in entrata rendendoli visibili zoomando in avanti o in fuori
+## Interazione con board
+- Permettere **reset memoria** del dispositivo
+- **Barra di avanzamento** del campionamento
+- Possibilità di verificare la **batteria del dispositivo** (icona con hover): introduzione di un meccanismo di fail-save che impedisce di iniziare un campionamento se la batteria del dispositivo è troppo bassa
+## Connessione con board
+- Possibilità di scegliere il **metodo di connessione**
+  - **Bluetooth**: poter filtrare i dispositivi (per nome/tipo e per utilizzo recente)
+  - **Seriale**
+- Possibilità di **disconnettere il dispositivo**
+- Possibilità di verificare lo **stato della connessione** al dispositivo (icona con hover)
+## Gestione dei dati
+- Possibilità di **esportare i dati**
+  - Excel
+  - CSV
+- Possibilità di iniziare un **nuovo campionamento** (creazione di un nuovo file) senza uscire dall'applicazione
+## Funzionalità
+- Possibilità di impostare **due punti diversi** per l'acquisizione della fase e visualizzare la differenza tra essi su un grafico
 
+# Modalità di misura
+- **Singola frequenza** (1 variabile)
+  - fissata la **frequenza**, si registrano i cambiamenti della fase e del modulo
+- **Sweep** (4 variabili)
+  - si fissano gli **estremi dell'intervallo** delle frequenze e il **numero di punti** di esso nel quale registrare la fase e il modulo
+  - si può stabilire il **numero di volte** per il quale ripetere il campionamento
 
-    
-## Specifiche
-### Singola misura
-- Il range di frequenza è compreso tra 1 Hz a 100 Hz, incrementi di 1 (numero intero)
+# Intervallo valori
+- **Frequenza**: 1-100 kHz (incremento di 1)
+- **Ampiezza**: 10-500 mV (incremento di 10)
 
-### Range di frequenze parametrico
-- Il range di frequenza è compreso tra 1 Hz a 100 Hz, incrementi di 1 (numero intero)
-- Ampiezza da 10 mV a 500 mV (incrementi di 10 mV) (numero intero)
+# Pulsanti per campionamento
+- **Start**: inizio registrazione valori
+- **Stop**: fine registrazione valori
+- **Mark**: segnare un punto della registrazione per controllo in un momento successivo (indicarlo nel file)
 
-### Modalità sweep
-- Possibilità di ripetere il campionamento per un numero di volte definito dall'utente
-- Scegliere quante frequenze campionare (numero intero)
-- Spaziatura fra le frequenze fissa (logaritmica)
+# Sezione grafici
+- 2 di **Bode** (per parte reale e immaginaria del segnale)
+- 1 di **Nyquist**
+- 1 per la **differenza tra i punti**
+Quando il grafico ricomincia dall'inizio, quello **immediatamente precedente sbiadisce** ed inizia quello nuovo con il colore primario
 
-# Mockup
+# Sezione log
+- **Messaggi di stato**
+  - Dispositivo
+  - Applicazione
+- **Dati numerici** in tempo reale
