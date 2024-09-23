@@ -5,6 +5,8 @@
  - Russo Anna
  - Terracciano Raffaele
  - Verde Francesco
+### Link al prototipo
+https://www.figma.com/proto/Iiyhb0qHPti0s1IfKdfc0f/Progetto-Misure?node-id=76-3124&t=0g2YE0rK646NnbU4-1
 
 # Caratteristiche dell'applicazione
 ## Esperienza per l'utente
