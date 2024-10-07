@@ -108,7 +108,6 @@ class MainApplication(ctk.CTk):
 		data_container.pack(side="top", fill="both", expand=True, padx=5, pady=(0, 5))
 
 		# Sezione dei pulsanti
-
 		# Suddivisione finestra
 		tool_container = ctk.CTkFrame(data_container, fg_color=appTheme["container"], corner_radius=0)
 		tool_container.pack(side="top", fill="y", anchor="w", padx=30, pady=(5, 5))
@@ -118,15 +117,15 @@ class MainApplication(ctk.CTk):
 		tool_container.columnconfigure(2, weight=2)
 
 		# Pulsanti
-		button1_frame = ctk.CTkButton(tool_container, text="Data", fg_color=appTheme["button"], corner_radius=0,
+		data_button = ctk.CTkButton(tool_container, text="Data", fg_color=appTheme["button"], corner_radius=0,
 									  width=40,
 									  height=40, command=self.__data_button)
-		button1_frame.grid(row=0, column=0, padx=(0, 10))
+		data_button.grid(row=0, column=0, padx=(0, 10))
 
-		button2_frame = ctk.CTkButton(tool_container, text="Logs", fg_color=appTheme["button"], corner_radius=0,
+		logs_button = ctk.CTkButton(tool_container, text="Logs", fg_color=appTheme["button"], corner_radius=0,
 									  width=40,
 									  height=40, command=self.__logs_button)
-		button2_frame.grid(row=0, column=1, padx=(0, 30))
+		logs_button.grid(row=0, column=1, padx=(0, 30))
 
 		# Barra di caricamento
 		loading_bar_frame = ctk.CTkFrame(tool_container, fg_color=appTheme["loadingBar"], corner_radius=0, width=400,
