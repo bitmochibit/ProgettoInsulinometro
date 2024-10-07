@@ -135,9 +135,39 @@ class MainApplication(ctk.CTk):
 		loading_bar_frame.grid(row=0, column=2)
 
 		# Tabella dei dati
-		# Aggiungere le tre colonne (todo)
 		table_frame = ctk.CTkFrame(data_container, fg_color=appTheme["dataContainer"], corner_radius=0)
 		table_frame.pack(side="top", fill="both", expand=True)
+
+		table_frame.columnconfigure(0, weight=1)
+		table_frame.columnconfigure(1, weight=1)
+		table_frame.columnconfigure(2, weight=1)
+
+		table_frame.rowconfigure(0, weight=1)
+		table_frame.rowconfigure(1, weight=1)
+		table_frame.rowconfigure(2, weight=1)
+
+		frequency_label = ctk.CTkLabel(table_frame, text="Frequenza", text_color="black")
+		frequency_label.grid(row=0, column=0, sticky="nsew")
+
+		phase_label = ctk.CTkLabel(table_frame, text="Fase", text_color="black")
+		phase_label.grid(row=0, column=1, sticky="nsew")
+
+		magnitude_label = ctk.CTkLabel(table_frame, text="Ampiezza", text_color="black")
+		magnitude_label.grid(row=0, column=2, sticky="nsew")
+
+		datas1_text = ctk.CTkLabel(table_frame, text="Data", text_color="black")
+		datas1_text.grid(row=1, column=0, sticky="nsew")
+		datas2_text = ctk.CTkLabel(table_frame, text="Data", text_color="black")
+		datas2_text.grid(row=1, column=1, sticky="nsew")
+		datas3_text = ctk.CTkLabel(table_frame, text="Data", text_color="black")
+		datas3_text.grid(row=1, column=2, sticky="nsew")
+
+		datas4_text = ctk.CTkLabel(table_frame, text="Data", text_color="black")
+		datas4_text.grid(row=2, column=0, sticky="nsew")
+		datas5_text = ctk.CTkLabel(table_frame, text="Data", text_color="black")
+		datas5_text.grid(row=2, column=1, sticky="nsew")
+		datas6_text = ctk.CTkLabel(table_frame, text="Data", text_color="black")
+		datas6_text.grid(row=2, column=2, sticky="nsew")
 		pass
 
 	def __init__(self, app_theme=None):
