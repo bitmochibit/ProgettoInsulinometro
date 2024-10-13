@@ -10,7 +10,7 @@ from customtkinter import CTkFrame, CTkImage, CTkEntry, CTkFont
 
 # emoji come icone temporanee
 
-# Classe per la definizione statica del tema
+# Classe per la definizione statica del tema, sara' possibile estenderla per sovrascrivere i colori
 class AppTheme:
 	def __init__(self, button="red", plot="green", container="blue", input="purple", loading_bar="yellow",
 	             data_container="pink", main_container="white"):
