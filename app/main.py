@@ -161,7 +161,7 @@ class LabelledInput(CTkEntry):
 		                          **label_options.kwargs
 		                          )
 		if entry_options.textvariable is not None:
-			# Aggiungi un listener all'input per aggiornare il valore della textvariable
+			# Aggiungi un listener all'input per aggiornare il valore della textvariable (devo fare cosi' per forza perche' senno' sparisce il placeholder)
 			def update_variable(e):
 				self.current_input_variable.set(self.input.get())
 			self.input.bind("<KeyRelease>", update_variable)
