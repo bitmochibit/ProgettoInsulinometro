@@ -1,10 +1,10 @@
-﻿import tkinter.font
+﻿import time
+import tkinter.font
 from tkinter import Widget
 from typing import Union, Optional, Tuple, Callable, Any
 
 import customtkinter as ctk
 from CTkMenuBar import CTkTitleMenu
-from PIL.ImageCms import buildTransformFromOpenProfiles
 from customtkinter import CTkFrame, CTkImage, CTkEntry, CTkFont, CTkTabview, CTkButton, CTkSegmentedButton, CTkCanvas
 import colorsys
 
@@ -91,8 +91,85 @@ class ExtendedTitleMenu(CTkTitleMenu):
 		frame.grid(row=0, column=self.num, padx=(0, self.padding))
 
 
-# Classe estesa per il tabview personalizzato, che e' fatta MALISSIMO
-class ExtendedTabview(CTkTabview):
+# Classe estesa per il tabview personalizzato, che quella base e' fatta male
+class ExtendedTabView(CTkTabview):
+	def _set_selected_underline(self, b: CTkButton):
+		# Remove underline from all buttons by deleting the lines from the canvas
+		for btn, canvas in self._button_underlines.items():
+			if canvas:
+				# Optionally hide the canvas or remove it from the grid to avoid overlap
+				canvas.place_forget()
+
+		b.update_idletasks()
+		# Create or retrieve the canvas for the underline for the selected button
+		if b not in self._button_underlines:
+			# Create the canvas only if it doesn't already exist for the selected button
+			canvas = CTkCanvas(b, width=b.winfo_reqwidth(), height=self._underline_width, highlightthickness=0)
+			self._button_underlines[b] = canvas  # Store the canvas in the dictionary
+
+		else:
+			print("Retrieved canvas")
+			canvas = self._button_underlines[b]
+
+		# Draw the underline (a line at the bottom of the button)
+		canvas.create_line(0, 0, b.winfo_reqwidth(), 0, fill=self._selected_style_color, width=self._underline_width,
+		                   capstyle="round")
+
+		# Place the canvas just below the button
+		canvas.place(x=0, y=b.winfo_reqheight() - self._underline_width)
+		pass
+
+	def _update_buttons(self):
+		if self._segmented_button_font is not None:
+			self.segmented_button.configure(font=self._segmented_button_font)
+
+		if self._segmented_button_background_corner_colors is not None:
+			self._segmented_button.configure(background_corner_colors=self._segmented_button_background_corner_colors)
+
+		if self._segmented_button_height is not None:
+			self._segmented_button.configure(height=self._segmented_button_height)
+
+		if self._segmented_button_width is not None:
+			self._segmented_button.configure(width=self._segmented_button_width)
+
+		if self._segmented_button_padding_x is not None:
+			self._segmented_button.grid_configure(padx=self._segmented_button_padding_x)
+
+		if self._segmented_button_padding_y is not None:
+			self._segmented_button.grid_configure(pady=self._segmented_button_padding_y)
+
+		if self._segmented_button_sticky is not None:
+			self._segmented_button.grid_configure(sticky=self._segmented_button_sticky)
+
+		if self._segmented_button_row is not None:
+			print(self._segmented_button_row)
+			self._segmented_button.grid_configure(row=self._segmented_button_row)
+
+		if self._segmented_button_column is not None:
+			self._segmented_button.grid_configure(column=self._segmented_button_column)
+
+		for button in self._segmented_button._buttons_dict.values():
+			button.grid_configure(padx=self._button_padding_x, pady=self._button_padding_y)
+			# Change text color on hover
+			if self._text_hover_color is not None:
+				button.bind("<Enter>", lambda e, i=button: i.configure(text_color=self._text_hover_color))
+				button.bind("<Leave>", lambda e, i=button: i.configure(text_color=self._text_color))
+
+			if self._selected_style == "underline":
+				button.bind("<Button-1>", lambda e, i=button: self._set_selected_underline(i))
+				if button.cget("text") == self._current_name:
+					self._set_selected_underline(button)
+
+	def add(self, text: str) -> CTkFrame:
+		frame = super().add(text)
+		self._update_buttons()
+		return frame
+
+	def set(self, text: str):
+		super().set(text)
+		self._update_buttons()
+		pass
+
 	def __init__(self,
 	             master: Any,
 	             width: int = 300,
@@ -111,8 +188,27 @@ class ExtendedTabview(CTkTabview):
 	             segmented_button_unselected_hover_color: Optional[Union[str, Tuple[str, str]]] = None,
 	             segmented_button_font: Optional[CTkFont] = None,
 
+	             segmented_button_background_corner_colors: Optional[Tuple[str, str, str, str]] = None,
+	             segmented_button_height: Optional[int] = None,
+	             segmented_button_width: Optional[int] = None,
+
+	             segmented_button_padding_x: Union[float, Tuple[float, float]] = 0.0,
+	             segmented_button_padding_y: Union[float, Tuple[float, float]] = 0.0,
+
+	             segmented_button_sticky: Optional[str] = None,
+	             segmented_button_row: Optional[int] = None,
+	             segmented_button_column: Optional[int] = None,
+
+	             button_padding_x: Union[float, Tuple[float, float]] = 0.0,
+	             button_padding_y: Union[float, Tuple[float, float]] = 0.0,
+
+	             selected_style: Optional[str] = None,  # "underline" (per ora solo questo)
+	             selected_style_color: Optional[str] = None,
+
+	             underline_width: int = 4,
 
 	             text_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             text_hover_color: Optional[str] = None,
 	             text_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
 
 	             command: Union[Callable, Any] = None,
@@ -125,7 +221,36 @@ class ExtendedTabview(CTkTabview):
 		                 segmented_button_selected_hover_color,
 		                 segmented_button_unselected_color, segmented_button_unselected_hover_color, text_color,
 		                 text_color_disabled, command, anchor, state, **kwargs)
-		self.app_theme = app_theme
+		self.segmented_button: CTkSegmentedButton | None = self.children.get("!ctksegmentedbutton")
+
+		self._app_theme = app_theme
+		self._segmented_button_font = segmented_button_font
+
+		self._selected_style = selected_style
+		self._selected_style_color = selected_style_color
+
+		self._text_hover_color = text_hover_color
+		self._text_color = text_color
+
+		self._button_padding_x = button_padding_x
+		self._button_padding_y = button_padding_y
+
+		self._underline_width = underline_width
+
+		self._segmented_button_background_corner_colors = segmented_button_background_corner_colors
+		self._segmented_button_height = segmented_button_height
+		self._segmented_button_width = segmented_button_width
+
+		self._segmented_button_padding_x = segmented_button_padding_x
+		self._segmented_button_padding_y = segmented_button_padding_y
+
+		self._segmented_button_sticky = segmented_button_sticky
+		self._segmented_button_row = segmented_button_row
+		self._segmented_button_column = segmented_button_column
+
+		self._button_underlines = {}
+
+		self._update_buttons()
 
 
 # Elementi
@@ -337,41 +462,44 @@ class MainApplication(ctk.CTk):
 		controller_container.pack(side="left", fill="both")
 
 		# Tab view dei controlli (Fixed, Sweep)
-		measurement_mode_tabview = ctk.CTkTabview(controller_container,
-		                                          fg_color=self.app_theme.element_background,
-		                                          text_color=(
-			                                          self.app_theme.light_gray_text, self.app_theme.primary_text),
-		                                          width=250,
-		                                          segmented_button_fg_color=self.app_theme.element_secondary_background,
-		                                          segmented_button_selected_color=scale_lightness(
-			                                          self.app_theme.element_secondary_background, 0.96),
-		                                          segmented_button_unselected_color=self.app_theme.element_secondary_background,
-		                                          segmented_button_unselected_hover_color=scale_lightness(
-			                                          self.app_theme.element_secondary_background, 0.95),
-		                                          segmented_button_selected_hover_color=scale_lightness(
-			                                          self.app_theme.element_secondary_background, 0.96),
-		                                          corner_radius=5,
-		                                          border_width=0,
-		                                          anchor="e"
-		                                          )
-		measurement_mode_tabview.pack(side="top", fill="both")
+		measurement_mode_tabview = ExtendedTabView(controller_container,
+		                                           fg_color=self.app_theme.element_background,
+		                                           text_color=(
+			                                           self.app_theme.light_gray_text, self.app_theme.primary_text),
+		                                           width=250,
+		                                           segmented_button_fg_color=self.app_theme.element_secondary_background,
+		                                           segmented_button_selected_color=scale_lightness(
+			                                           self.app_theme.element_secondary_background, 0.96),
+		                                           segmented_button_unselected_color=self.app_theme.element_secondary_background,
+		                                           segmented_button_unselected_hover_color=scale_lightness(
+			                                           self.app_theme.element_secondary_background, 0.95),
+		                                           segmented_button_selected_hover_color=scale_lightness(
+			                                           self.app_theme.element_secondary_background, 0.96),
+		                                           segmented_button_font=CTkFont(family="Poppins", size=16,
+		                                                                         weight="bold"),
+		                                           segmented_button_background_corner_colors=(
+			                                           self.app_theme.secondary_background,
+			                                           self.app_theme.secondary_background,
+			                                           self.app_theme.element_secondary_background,
+			                                           self.app_theme.element_secondary_background
+		                                           ),
+		                                           segmented_button_height=40,
+		                                           segmented_button_padding_x=(0, 0),
+		                                           segmented_button_padding_y=(0, 0),
 
-		tabview_segmented_button: CTkSegmentedButton | None = measurement_mode_tabview.children.get(
-			"!ctksegmentedbutton")  # 🍆
+
+		                                           segmented_button_sticky="news",
+		                                           segmented_button_row=0,
+
+		                                           corner_radius=5,
+		                                           border_width=0,
+		                                           anchor="n"
+		                                           )
+		measurement_mode_tabview.pack(side="top", fill="both")
 
 		fixed_tab = measurement_mode_tabview.add("Fixed")
 		sweep_tab = measurement_mode_tabview.add("Sweep")
 		measurement_mode_tabview.set("Fixed")
-
-		tabview_segmented_button.configure(
-			font=CTkFont(family="Poppins", size=16, weight="bold"),
-			background_corner_colors=(
-				self.app_theme.secondary_background, self.app_theme.secondary_background,
-				self.app_theme.element_secondary_background, self.app_theme.element_secondary_background
-			),
-			height=40
-		)
-		tabview_segmented_button.grid_configure(row=0, sticky="news", padx=(0, 0))
 
 		# Finestre di input
 		input_container = ctk.CTkFrame(fixed_tab, fg_color=self.app_theme.element_background, corner_radius=5)
@@ -447,65 +575,28 @@ class MainApplication(ctk.CTk):
 		data_container.pack(side="top", fill="both", expand=True, padx=5, pady=(0, 5))
 
 		# Tab view dei dati e dei log
-		tools_tabview = ctk.CTkTabview(data_container,
-		                               fg_color=self.app_theme.transparent,
-		                               text_color=(self.app_theme.light_gray_text, self.app_theme.primary_text),
-
-		                               segmented_button_fg_color=self.app_theme.primary_background,
-		                               segmented_button_selected_color=self.app_theme.primary_background,
-		                               segmented_button_unselected_color=self.app_theme.primary_background,
-		                               segmented_button_unselected_hover_color=self.app_theme.primary_background,
-		                               segmented_button_selected_hover_color=self.app_theme.primary_background,
-		                               corner_radius=5,
-		                               anchor="w",
-
-		                               )
-		tabview_segmented_button: CTkSegmentedButton | None = tools_tabview.children.get("!ctksegmentedbutton")  # 🍆
-		tabview_segmented_button.configure(
-			font=CTkFont(family="Poppins", size=16, weight="bold")
-		)
+		tools_tabview = ExtendedTabView(data_container,
+		                                fg_color=self.app_theme.transparent,
+		                                text_color=(self.app_theme.light_gray_text, self.app_theme.primary_text),
+		                                text_hover_color=self.app_theme.secondary_text,
+		                                segmented_button_fg_color=self.app_theme.primary_background,
+		                                segmented_button_selected_color=self.app_theme.primary_background,
+		                                segmented_button_unselected_color=self.app_theme.primary_background,
+		                                segmented_button_unselected_hover_color=self.app_theme.primary_background,
+		                                segmented_button_selected_hover_color=self.app_theme.primary_background,
+		                                segmented_button_font=CTkFont(family="Poppins", size=16, weight="bold"),
+		                                corner_radius=5,
+		                                button_padding_x=(0, 50),
+		                                selected_style="underline",
+		                                selected_style_color=self.app_theme.primary_text,
+		                                anchor="w",
+		                                )
 		tools_tabview.pack(side="top", fill="both", anchor="n", padx=30)
 		data_tab = tools_tabview.add("Data")
 		logs_tab = tools_tabview.add("Logs")
 		tools_tabview.set("Data")
 
-		# Dictionary to store canvas objects for each button
-		button_underlines = {}
-
-		def set_selected_underline(b: CTkButton):
-
-			# Remove underline from all buttons by deleting the lines from the canvas
-			for btn, canvas in button_underlines.items():
-				if canvas:
-					# Optionally hide the canvas or remove it from the grid to avoid overlap
-					canvas.place_forget()
-
-			# Create or retrieve the canvas for the underline for the selected button
-			if b not in button_underlines:
-				# Create the canvas only if it doesn't already exist for the selected button
-				canvas = CTkCanvas(b, width=b.winfo_width(), height=4, highlightthickness=0)
-				button_underlines[b] = canvas  # Store the canvas in the dictionary
-			else:
-				canvas = button_underlines[b]
-
-			# Draw the underline (a line at the bottom of the button)
-			canvas.create_line(0, 0, b.winfo_width(), 0, fill=self.app_theme.primary_text, width=4, capstyle="round")
-
-			# Place the canvas just below the button
-			canvas.place(x=0, y=b.winfo_height() - 4)
-
-		# Bind the events to the buttons in the tabview
-		for button in tools_tabview._segmented_button._buttons_dict.values():
-			button.grid_configure(padx=(0, 40))
-
-			# Change text color on hover
-			button.bind("<Enter>", lambda e, i=button: i.configure(text_color=self.app_theme.secondary_text))
-			button.bind("<Leave>", lambda e, i=button: i.configure(text_color=self.app_theme.primary_text))
-
-			# Handle button click to set underline
-			button.bind("<Button-1>", lambda e, i=button: set_selected_underline(i))
-
-		loading_bar_container = ctk.CTkFrame(tabview_segmented_button, fg_color=self.app_theme.transparent,
+		loading_bar_container = ctk.CTkFrame(tools_tabview.segmented_button, fg_color=self.app_theme.transparent,
 		                                     corner_radius=0)
 		loading_bar_container.grid(row=0, column=2, sticky="nswe")
 		loading_bar = ctk.CTkProgressBar(loading_bar_container, corner_radius=5, width=400,
