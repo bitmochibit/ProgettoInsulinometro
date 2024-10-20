@@ -7,7 +7,13 @@ from CTkMenuBar import CTkTitleMenu
 from customtkinter import CTkFrame, CTkImage, CTkEntry, CTkFont, CTkTabview, CTkButton, CTkSegmentedButton, CTkCanvas
 import colorsys
 
-from tkfontawesome import icon_to_image
+import matplotlib as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+from matplotlib.pyplot import subplots
+
+
+#from tkfontawesome import icon_to_image
 
 
 # from PIL import Image, ImageDraw, ImageFont
@@ -416,6 +422,8 @@ class MainApplication(ctk.CTk):
 		menu = ExtendedTitleMenu(self, app_theme=self.app_theme,
 		                         title_bar_color=color_str_to_hex(self.app_theme.element_background),
 		                         y_offset=4,
+								 min_width=self._min_width,
+								 min_height=self._min_height
 		                         )
 
 		file_btn = menu.add_cascade("File",
@@ -442,25 +450,24 @@ class MainApplication(ctk.CTk):
 		                              )
 
 		device_btn.grid_configure(padx=(0, 30))
-		signal_btn = menu.add_cascade("",
+		signal_btn = menu.add_cascade("📶",
 		                              command=self.__signal_button,
 		                              text_color=self.app_theme.primary_text,
 		                              fg_color=self.app_theme.element_background,
 		                              bg_color=self.app_theme.transparent,
 		                              hover_color=self.app_theme.element_background,
 		                              corner_radius=0,
-		                              image=icon_to_image("wifi", scale_to_width=14, fill=self.app_theme.primary_text)
+		                              #image=icon_to_image("wifi", scale_to_width=14, fill=self.app_theme.primary_text)
 		                              )
 
-		battery_btn = menu.add_cascade("",
+		battery_btn = menu.add_cascade("🔋",
 		                               command=self.__battery_button,
 		                               text_color=self.app_theme.primary_text,
 		                               fg_color=self.app_theme.element_background,
 		                               bg_color=self.app_theme.transparent,
 		                               hover_color=self.app_theme.element_background,
 		                               corner_radius=0,
-		                               image=icon_to_image("battery-full", scale_to_width=14,
-		                                                   fill=self.app_theme.primary_text)
+		                               #image=icon_to_image("battery-full", scale_to_width=14, fill=self.app_theme.primary_text)
 		                               )
 
 	def __main_frame(self):
@@ -486,11 +493,33 @@ class MainApplication(ctk.CTk):
 		bode1_frame = ctk.CTkFrame(plot_container, fg_color=self.app_theme.element_background, corner_radius=5)
 		bode1_frame.grid(row=0, column=0, padx=(0, 5), pady=(0, 5), sticky=ctk.NSEW)
 
+		bode1_fig = plt.figure.Figure(dpi=72)
+		ax = bode1_fig.subplots()
+
+		bode1_graph = FigureCanvasTkAgg(bode1_fig, bode1_frame)
+		bode1_graph.draw()
+
+		bode1_graph.get_tk_widget().pack(side="top", fill="both")
+
 		bode2_frame = ctk.CTkFrame(plot_container, fg_color=self.app_theme.element_background, corner_radius=5)
 		bode2_frame.grid(row=1, column=0, padx=(0, 5), sticky=ctk.NSEW)
 
+		bode2_fig = plt.figure.Figure(dpi=72)
+		ax = bode2_fig.add_subplot()
+
+		bode2_graph = FigureCanvasTkAgg(bode2_fig, bode2_frame)
+		bode2_graph.draw()
+		bode2_graph.get_tk_widget().pack(side="top", fill="both")
+
 		nyquist_frame = ctk.CTkFrame(plot_container, fg_color=self.app_theme.element_background, corner_radius=5)
 		nyquist_frame.grid(row=0, column=1, rowspan=2, columnspan=2, padx=(0, 5), sticky=ctk.NSEW)
+
+		nyquist_fig = plt.figure.Figure(dpi=72)
+		ax = nyquist_fig.subplots()
+
+		nyquist_graph = FigureCanvasTkAgg(nyquist_fig, nyquist_frame)
+		nyquist_graph.draw()
+		nyquist_graph.get_tk_widget().pack(side="top", fill="both")
 
 		# Sezione dei controlli
 		# Suddivisione finestra
@@ -662,11 +691,12 @@ class MainApplication(ctk.CTk):
 		                            command=self.__stop_button)
 		stop_button.grid(row=0, column=1)
 
-		marker_button = ctk.CTkButton(button_container, text="", fg_color=self.app_theme.warning_button,
+		marker_button = ctk.CTkButton(button_container, text="⫯", fg_color=self.app_theme.warning_button,
+									  font=CTkFont(family="Poppins", size=19),
 		                              text_color=self.app_theme.warning_button_text, corner_radius=5,
 		                              hover_color=scale_lightness(self.app_theme.warning_button, 0.95),
 		                              width=40,
-		                              image=icon_to_image("map-pin", scale_to_width=8, fill=self.app_theme.warning_button_text),
+		                              #image=icon_to_image("map-pin", scale_to_width=8, fill=self.app_theme.warning_button_text),
 		                              command=self.__marker_button)
 		marker_button.grid(row=0, column=2)
 
