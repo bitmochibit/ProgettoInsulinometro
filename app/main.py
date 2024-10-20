@@ -3,6 +3,7 @@ from typing import Union, Optional, Tuple, Callable, Any
 
 import customtkinter as ctk
 from CTkMenuBar import CTkTitleMenu
+from PIL.ImageOps import expand
 
 from customtkinter import CTkFrame, CTkImage, CTkEntry, CTkFont, CTkTabview, CTkButton, CTkSegmentedButton, CTkCanvas
 import colorsys
@@ -474,23 +475,18 @@ class MainApplication(ctk.CTk):
 		self.main_frame = ctk.CTkFrame(self, fg_color=self.app_theme.secondary_background, corner_radius=0)
 		self.main_frame.grid(row=1, column=0, sticky=ctk.NSEW)
 		# Sezione dei grafici e dei controlli
-		graph_section_container = ctk.CTkFrame(self.main_frame, fg_color="transparent", corner_radius=0)
-		graph_section_container.pack(side="top", fill="both", expand=True, padx=10, pady=25)
+		graph_section = ctk.CTkFrame(self.main_frame, fg_color="transparent", corner_radius=0)
+		graph_section.pack(side="top", fill="both", padx=10, pady=25)
 
-		# Sezione dei grafici
-		# Suddivisione finestra
-		plot_container = ctk.CTkFrame(graph_section_container, fg_color="transparent", corner_radius=0)
-		plot_container.pack(side="left", fill="both", expand=True)
+		graph_section.columnconfigure(0, weight=1)
+		graph_section.columnconfigure(1, weight=1)
+		graph_section.columnconfigure(2, weight=3)
 
-		plot_container.columnconfigure(0, weight=1)
-		plot_container.columnconfigure(1, weight=1)
-		plot_container.columnconfigure(2, weight=1)
-
-		plot_container.rowconfigure(0, weight=1)
-		plot_container.rowconfigure(1, weight=1)
+		graph_section.rowconfigure(0, weight=1)
+		graph_section.rowconfigure(1, weight=1)
 
 		# Grafici
-		bode1_frame = ctk.CTkFrame(plot_container, fg_color=self.app_theme.element_background, corner_radius=5)
+		bode1_frame = ctk.CTkFrame(graph_section, fg_color=self.app_theme.element_background, corner_radius=5)
 		bode1_frame.grid(row=0, column=0, padx=(0, 5), pady=(0, 5), sticky=ctk.NSEW)
 
 		bode1_fig = plt.figure.Figure(dpi=72)
@@ -499,9 +495,9 @@ class MainApplication(ctk.CTk):
 		bode1_graph = FigureCanvasTkAgg(bode1_fig, bode1_frame)
 		bode1_graph.draw()
 
-		bode1_graph.get_tk_widget().pack(side="top", fill="both")
+		bode1_graph.get_tk_widget().pack(side="top", fill="both", padx=2, pady=2)
 
-		bode2_frame = ctk.CTkFrame(plot_container, fg_color=self.app_theme.element_background, corner_radius=5)
+		bode2_frame = ctk.CTkFrame(graph_section, fg_color=self.app_theme.element_background, corner_radius=5)
 		bode2_frame.grid(row=1, column=0, padx=(0, 5), sticky=ctk.NSEW)
 
 		bode2_fig = plt.figure.Figure(dpi=72)
@@ -509,9 +505,9 @@ class MainApplication(ctk.CTk):
 
 		bode2_graph = FigureCanvasTkAgg(bode2_fig, bode2_frame)
 		bode2_graph.draw()
-		bode2_graph.get_tk_widget().pack(side="top", fill="both")
+		bode2_graph.get_tk_widget().pack(side="top", fill="both", padx=2, pady=2)
 
-		nyquist_frame = ctk.CTkFrame(plot_container, fg_color=self.app_theme.element_background, corner_radius=5)
+		nyquist_frame = ctk.CTkFrame(graph_section, fg_color=self.app_theme.element_background, corner_radius=5)
 		nyquist_frame.grid(row=0, column=1, rowspan=2, columnspan=2, padx=(0, 5), sticky=ctk.NSEW)
 
 		nyquist_fig = plt.figure.Figure(dpi=72)
@@ -519,21 +515,22 @@ class MainApplication(ctk.CTk):
 
 		nyquist_graph = FigureCanvasTkAgg(nyquist_fig, nyquist_frame)
 		nyquist_graph.draw()
-		nyquist_graph.get_tk_widget().pack(side="top", fill="both")
+		nyquist_graph.get_tk_widget().pack(side="top", fill="both", padx=2, pady=2)
 
 		# Sezione dei controlli
 		# Suddivisione finestra
-		controller_container = ctk.CTkFrame(graph_section_container, fg_color=self.app_theme.transparent,
+		graph_controls_container = ctk.CTkFrame(graph_section, fg_color=self.app_theme.transparent,
 		                                    corner_radius=5)
-		controller_container.pack(side="left", fill="both")
+		graph_controls_container.grid(row=0, column=3, sticky=ctk.NSEW, rowspan=2)
 
 		# Tab view dei controlli (Fixed, Sweep)
-		measurement_mode_tabview = ExtendedTabView(controller_container,
+		measurement_mode_tabview = ExtendedTabView(graph_controls_container,
 		                                           fg_color=self.app_theme.element_background,
 		                                           text_color=(
 			                                           self.app_theme.light_gray_text, self.app_theme.primary_text),
 		                                           text_color_unselected=self.app_theme.gray_text,
 		                                           width=250,
+		                                           height=0,
 		                                           segmented_button_fg_color=self.app_theme.element_secondary_background,
 		                                           segmented_button_selected_color=scale_lightness(
 			                                           self.app_theme.element_secondary_background, 0.96),
@@ -561,7 +558,7 @@ class MainApplication(ctk.CTk):
 		                                           border_width=0,
 		                                           anchor="n"
 		                                           )
-		measurement_mode_tabview.pack(side="top", fill="both")
+		measurement_mode_tabview.pack(side="top", fill="both", expand=True)
 
 		fixed_tab = measurement_mode_tabview.add("Fixed")
 		sweep_tab = measurement_mode_tabview.add("Sweep")
@@ -601,7 +598,7 @@ class MainApplication(ctk.CTk):
 		                                               scrollbar_button_color=self.app_theme.light_gray_text,
 		                                               scrollbar_button_hover_color=scale_lightness(
 			                                               self.app_theme.light_gray_text, 0.94))
-		sweep_input_container.pack(side="top", fill="both")
+		sweep_input_container.pack(side="top", fill="both", expand=True)
 
 		sweep_magnitude_input = LabelledInput(sweep_input_container,
 		                                      entry_options=LabelledInput.EntryOptions(
@@ -664,9 +661,9 @@ class MainApplication(ctk.CTk):
 		cycles_number_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		# Pulsanti di controllo
-		controls_section = ctk.CTkFrame(controller_container, fg_color=self.app_theme.element_background,
+		controls_section = ctk.CTkFrame(graph_controls_container, fg_color=self.app_theme.element_background,
 		                                corner_radius=5)
-		controls_section.pack(fill="both", expand=True)
+		controls_section.pack(fill="both")
 
 		button_container = ctk.CTkFrame(controls_section, fg_color="transparent")
 		button_container.pack(anchor="s", side="bottom", fill="both", pady=(0, 10))
