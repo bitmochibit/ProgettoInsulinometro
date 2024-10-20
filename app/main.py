@@ -3,8 +3,11 @@ from typing import Union, Optional, Tuple, Callable, Any
 
 import customtkinter as ctk
 from CTkMenuBar import CTkTitleMenu
+
 from customtkinter import CTkFrame, CTkImage, CTkEntry, CTkFont, CTkTabview, CTkButton, CTkSegmentedButton, CTkCanvas
 import colorsys
+
+from tkfontawesome import icon_to_image
 
 
 # from PIL import Image, ImageDraw, ImageFont
@@ -24,29 +27,29 @@ def scale_lightness(hexStr, scale_l):
 # Classe per la definizione statica del tema, sara' possibile estenderla per sovrascrivere i colori
 class AppTheme:
 	def __init__(self,
-				 transparent="transparent",
+	             transparent="transparent",
 
-				 primary_background="#F9F8FD",
-				 secondary_background="#F1F2F7",
-				 element_background="#FFFFFF",
-				 element_secondary_background="#F3EDF7",
+	             primary_background="#F9F8FD",
+	             secondary_background="#F1F2F7",
+	             element_background="#FFFFFF",
+	             element_secondary_background="#F3EDF7",
 
-				 primary_text="#1D1E4D",
-				 secondary_text="#535178",
-				 light_text="#FFFFFF",
-				 gray_text="#434242",
-				 light_gray_text="#CAC4D0",
+	             primary_text="#1D1E4D",
+	             secondary_text="#535178",
+	             light_text="#FFFFFF",
+	             gray_text="#434242",
+	             light_gray_text="#CAC4D0",
 
-				 primary_button="#EBFFFC",
-				 primary_button_text="#003830",
+	             primary_button="#EBFFFC",
+	             primary_button_text="#003830",
 
-				 warning_button="#FFF9EB",
-				 warning_button_text="#422E00",
+	             warning_button="#FFF9EB",
+	             warning_button_text="#422E00",
 
-				 danger_button="#FFEBEF",
-				 danger_button_text="#800019",
+	             danger_button="#FFEBEF",
+	             danger_button_text="#800019",
 
-				 ):
+	             ):
 		self.transparent = transparent
 
 		self.primary_background = primary_background
@@ -71,19 +74,34 @@ class AppTheme:
 		pass
 
 
-# Classe estesa per il menu personalizzato
+def color_str_to_hex(color: str) -> int:
+	return int(color[1:], 16)
+
+
+# Classe estesa per il menu personalizzato, per qualche strano motivo quello di base supporta solo il testo 🍡
 class ExtendedTitleMenu(CTkTitleMenu):
 	def __init__(self,
-				 master,
-				 title_bar_color=0xFFFFFF,
-				 padx: int = 10,
-				 width: int = 10,
-				 x_offset: int = None,
-				 y_offset: int = None,
-				 app_theme: AppTheme = AppTheme()
-				 ):
+	             master,
+	             title_bar_color=0xFFFFFF,
+	             padx: int = 10,
+	             width: int = 10,
+	             x_offset: int = None,
+	             y_offset: int = None,
+	             min_width: int = 800,
+	             min_height: int = 600,
+	             app_theme: AppTheme = AppTheme()
+	             ):
 		super().__init__(master, title_bar_color, padx, width, x_offset, y_offset)
+		self.master.minsize(min_width, min_height)
 		self.app_theme = app_theme
+
+	def add_cascade(self, text=None, postcommand=None, hover_text_color=None, **kwargs) -> CTkButton:
+		btn = super().add_cascade(text, postcommand, **kwargs)
+		if hover_text_color is not None:
+			btn.bind("<Enter>", lambda e, i=btn: i.configure(text_color=hover_text_color))
+			btn.bind("<Leave>",
+			         lambda e, i=btn, default_color=kwargs.get("text_color"): i.configure(text_color=default_color))
+		return btn
 
 	def add_frame(self, frame: CTkFrame):
 		frame.grid(row=0, column=self.num, padx=(0, self.padding))
@@ -95,47 +113,47 @@ class ExtendedTabView(CTkTabview):
 	DEFAULT_SELECTED_STYLE = None
 
 	def __init__(self,
-				 master: Any,
-				 width: int = 300,
-				 height: int = 250,
-				 corner_radius: Optional[int] = None,
-				 border_width: Optional[int] = None,
-				 bg_color: Union[str, Tuple[str, str]] = "transparent",
-				 fg_color: Optional[Union[str, Tuple[str, str]]] = None,
-				 border_color: Optional[Union[str, Tuple[str, str]]] = None,
-				 segmented_button_fg_color: Optional[Union[str, Tuple[str, str]]] = None,
-				 segmented_button_selected_color: Optional[Union[str, Tuple[str, str]]] = None,
-				 segmented_button_selected_hover_color: Optional[Union[str, Tuple[str, str]]] = None,
-				 segmented_button_unselected_color: Optional[Union[str, Tuple[str, str]]] = None,
-				 segmented_button_unselected_hover_color: Optional[Union[str, Tuple[str, str]]] = None,
-				 segmented_button_font: Optional[CTkFont] = None,
-				 segmented_button_background_corner_colors: Optional[Tuple[str, str, str, str]] = None,
-				 segmented_button_height: Optional[int] = None,
-				 segmented_button_width: Optional[int] = None,
-				 segmented_button_padding_x: Union[float, Tuple[float, float]] = 0.0,
-				 segmented_button_padding_y: Union[float, Tuple[float, float]] = 0.0,
-				 segmented_button_sticky: Optional[str] = None,
-				 segmented_button_row: Optional[int] = None,
-				 segmented_button_column: Optional[int] = None,
-				 button_padding_x: Union[float, Tuple[float, float]] = 0.0,
-				 button_padding_y: Union[float, Tuple[float, float]] = 0.0,
-				 selected_style: Optional[str] = None,
-				 selected_style_color: Optional[str] = None,
-				 underline_width: int = DEFAULT_UNDERLINE_WIDTH,
-				 text_color: Optional[Union[str, Tuple[str, str]]] = None,
-				 text_hover_color: Optional[str] = None,
-				 text_color_unselected: Optional[str] = None,
-				 text_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
-				 command: Union[Callable, Any] = None,
-				 anchor: str = "center",
-				 state: str = "normal",
-				 app_theme: AppTheme = AppTheme(),
-				 **kwargs):
+	             master: Any,
+	             width: int = 300,
+	             height: int = 250,
+	             corner_radius: Optional[int] = None,
+	             border_width: Optional[int] = None,
+	             bg_color: Union[str, Tuple[str, str]] = "transparent",
+	             fg_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             border_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             segmented_button_fg_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             segmented_button_selected_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             segmented_button_selected_hover_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             segmented_button_unselected_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             segmented_button_unselected_hover_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             segmented_button_font: Optional[CTkFont] = None,
+	             segmented_button_background_corner_colors: Optional[Tuple[str, str, str, str]] = None,
+	             segmented_button_height: Optional[int] = None,
+	             segmented_button_width: Optional[int] = None,
+	             segmented_button_padding_x: Union[float, Tuple[float, float]] = 0.0,
+	             segmented_button_padding_y: Union[float, Tuple[float, float]] = 0.0,
+	             segmented_button_sticky: Optional[str] = None,
+	             segmented_button_row: Optional[int] = None,
+	             segmented_button_column: Optional[int] = None,
+	             button_padding_x: Union[float, Tuple[float, float]] = 0.0,
+	             button_padding_y: Union[float, Tuple[float, float]] = 0.0,
+	             selected_style: Optional[str] = None,
+	             selected_style_color: Optional[str] = None,
+	             underline_width: int = DEFAULT_UNDERLINE_WIDTH,
+	             text_color: Optional[Union[str, Tuple[str, str]]] = None,
+	             text_hover_color: Optional[str] = None,
+	             text_color_unselected: Optional[str] = None,
+	             text_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
+	             command: Union[Callable, Any] = None,
+	             anchor: str = "center",
+	             state: str = "normal",
+	             app_theme: AppTheme = AppTheme(),
+	             **kwargs):
 		super().__init__(master, width, height, corner_radius, border_width, bg_color, fg_color, border_color,
-						 segmented_button_fg_color, segmented_button_selected_color,
-						 segmented_button_selected_hover_color,
-						 segmented_button_unselected_color, segmented_button_unselected_hover_color, text_color,
-						 text_color_disabled, command, anchor, state, **kwargs)
+		                 segmented_button_fg_color, segmented_button_selected_color,
+		                 segmented_button_selected_hover_color,
+		                 segmented_button_unselected_color, segmented_button_unselected_hover_color, text_color,
+		                 text_color_disabled, command, anchor, state, **kwargs)
 
 		self.segmented_button: CTkSegmentedButton | None = self.children.get("!ctksegmentedbutton")
 		self._app_theme = app_theme
@@ -204,7 +222,7 @@ class ExtendedTabView(CTkTabview):
 	def _bind_button_events(self, button: CTkButton):
 		"""Bind hover and click events for a button."""
 		button.bind("<Enter>",
-					lambda e: button.configure(text_color=self._text_hover_color) if self._text_hover_color else None)
+		            lambda e: button.configure(text_color=self._text_hover_color) if self._text_hover_color else None)
 		button.bind("<Leave>", lambda e: button.configure(text_color=self._get_button_text_color(button)))
 		button.bind("<Button-1>", lambda e: self._on_button_click(button))
 
@@ -229,13 +247,13 @@ class ExtendedTabView(CTkTabview):
 		canvas = self._button_underlines.get(button)
 		if not canvas:
 			canvas = CTkCanvas(button, width=button.winfo_reqwidth(), height=self._underline_width,
-							   highlightthickness=0)
+			                   highlightthickness=0)
 			self._button_underlines[button] = canvas
 
 		# Create and place underline
 		canvas.delete("all")
 		canvas.create_line(0, 0, button.winfo_reqwidth(), 0, fill=self._selected_style_color,
-						   width=self._underline_width, capstyle="round")
+		                   width=self._underline_width, capstyle="round")
 		canvas.place(x=0, y=button.winfo_reqheight() - self._underline_width)
 
 	def _update_button_style(self, button: CTkButton):
@@ -261,35 +279,25 @@ class ExtendedTabView(CTkTabview):
 
 # Elementi
 
-# def emoji(emoji, size=32):
-# 	font = ImageFont.truetype("seguiemj.ttf", size=int(size / 1.5))
-# 	img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-# 	draw = ImageDraw.Draw(img)
-# 	draw.text((size / 2, size / 2), emoji,
-# 	          embedded_color=True, font=font, anchor="mm")
-# 	img = CTkImage(img, size=(size, size))
-# 	return img
-
-
 class LabelledInput(CTkEntry):
 	class EntryOptions:
 		def __init__(self,
-					 width: int = 140,
-					 height: int = 28,
-					 corner_radius: Optional[int] = None,
-					 border_width: Optional[int] = None,
+		             width: int = 140,
+		             height: int = 28,
+		             corner_radius: Optional[int] = None,
+		             border_width: Optional[int] = None,
 
-					 bg_color: Union[str, Tuple[str, str]] = "transparent",
-					 fg_color: Optional[Union[str, Tuple[str, str]]] = None,
-					 border_color: Optional[Union[str, Tuple[str, str]]] = None,
-					 text_color: Optional[Union[str, Tuple[str, str]]] = None,
-					 placeholder_text_color: Optional[Union[str, Tuple[str, str]]] = None,
+		             bg_color: Union[str, Tuple[str, str]] = "transparent",
+		             fg_color: Optional[Union[str, Tuple[str, str]]] = None,
+		             border_color: Optional[Union[str, Tuple[str, str]]] = None,
+		             text_color: Optional[Union[str, Tuple[str, str]]] = None,
+		             placeholder_text_color: Optional[Union[str, Tuple[str, str]]] = None,
 
-					 textvariable: Union[ctk.Variable, None] = None,
-					 placeholder_text: Union[str, None] = None,
-					 font: Optional[Union[tuple, CTkFont]] = None,
-					 state: str = ctk.NORMAL,
-					 **kwargs):
+		             textvariable: Union[ctk.Variable, None] = None,
+		             placeholder_text: Union[str, None] = None,
+		             font: Optional[Union[tuple, CTkFont]] = None,
+		             state: str = ctk.NORMAL,
+		             **kwargs):
 			self.width = width
 			self.height = height
 			self.corner_radius = corner_radius
@@ -307,22 +315,22 @@ class LabelledInput(CTkEntry):
 
 	class LabelOptions:
 		def __init__(self,
-					 width: int = 0,
-					 height: int = 28,
-					 corner_radius: Optional[int] = None,
+		             width: int = 0,
+		             height: int = 28,
+		             corner_radius: Optional[int] = None,
 
-					 bg_color: Union[str, Tuple[str, str]] = "transparent",
-					 fg_color: Optional[Union[str, Tuple[str, str]]] = None,
-					 text_color: Optional[Union[str, Tuple[str, str]]] = None,
-					 text_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
+		             bg_color: Union[str, Tuple[str, str]] = "transparent",
+		             fg_color: Optional[Union[str, Tuple[str, str]]] = None,
+		             text_color: Optional[Union[str, Tuple[str, str]]] = None,
+		             text_color_disabled: Optional[Union[str, Tuple[str, str]]] = None,
 
-					 text: str = "CTkLabel",
-					 font: Optional[Union[tuple, CTkFont]] = None,
-					 image: Union[CTkImage, None] = None,
-					 compound: str = "center",
-					 anchor: str = "w",  # label anchor: center, n, e, s, w
-					 wraplength: int = 0,
-					 **kwargs):
+		             text: str = "CTkLabel",
+		             font: Optional[Union[tuple, CTkFont]] = None,
+		             image: Union[CTkImage, None] = None,
+		             compound: str = "center",
+		             anchor: str = "w",  # label anchor: center, n, e, s, w
+		             wraplength: int = 0,
+		             **kwargs):
 			self.width = width
 			self.height = height
 			self.corner_radius = corner_radius
@@ -339,45 +347,45 @@ class LabelledInput(CTkEntry):
 			self.kwargs = kwargs
 
 	def __init__(self,
-				 master,
-				 entry_options: EntryOptions = EntryOptions(),
-				 label_options: LabelOptions = LabelOptions(),
-				 app_theme: AppTheme = AppTheme(),
-				 **kwargs):
+	             master,
+	             entry_options: EntryOptions = EntryOptions(),
+	             label_options: LabelOptions = LabelOptions(),
+	             app_theme: AppTheme = AppTheme(),
+	             **kwargs):
 		super().__init__(master, **kwargs)
 		self.current_input_variable = entry_options.textvariable
 		self.container = ctk.CTkFrame(master, fg_color="transparent", **kwargs)
 		self.input = ctk.CTkEntry(self.container,
-								  width=entry_options.width,
-								  height=entry_options.height,
-								  corner_radius=entry_options.corner_radius,
-								  border_width=entry_options.border_width,
-								  bg_color=entry_options.bg_color,
-								  fg_color=entry_options.fg_color if entry_options.fg_color is not None else app_theme.element_background,
-								  border_color=entry_options.border_color,
-								  text_color=entry_options.text_color,
-								  placeholder_text_color=entry_options.placeholder_text_color,
-								  placeholder_text=entry_options.placeholder_text,
-								  font=entry_options.font,
-								  state=entry_options.state,
-								  **entry_options.kwargs
-								  )
+		                          width=entry_options.width,
+		                          height=entry_options.height,
+		                          corner_radius=entry_options.corner_radius,
+		                          border_width=entry_options.border_width,
+		                          bg_color=entry_options.bg_color,
+		                          fg_color=entry_options.fg_color if entry_options.fg_color is not None else app_theme.element_background,
+		                          border_color=entry_options.border_color,
+		                          text_color=entry_options.text_color,
+		                          placeholder_text_color=entry_options.placeholder_text_color,
+		                          placeholder_text=entry_options.placeholder_text,
+		                          font=entry_options.font,
+		                          state=entry_options.state,
+		                          **entry_options.kwargs
+		                          )
 		self.label = ctk.CTkLabel(self.container,
-								  width=label_options.width,
-								  height=label_options.height,
-								  corner_radius=label_options.corner_radius,
-								  bg_color=label_options.bg_color,
-								  fg_color=label_options.fg_color,
-								  text_color=label_options.text_color,
-								  text_color_disabled=label_options.text_color_disabled,
-								  text=label_options.text,
-								  font=label_options.font,
-								  image=label_options.image,
-								  compound=label_options.compound,
-								  anchor=label_options.anchor,
-								  wraplength=label_options.wraplength,
-								  **label_options.kwargs
-								  )
+		                          width=label_options.width,
+		                          height=label_options.height,
+		                          corner_radius=label_options.corner_radius,
+		                          bg_color=label_options.bg_color,
+		                          fg_color=label_options.fg_color,
+		                          text_color=label_options.text_color,
+		                          text_color_disabled=label_options.text_color_disabled,
+		                          text=label_options.text,
+		                          font=label_options.font,
+		                          image=label_options.image,
+		                          compound=label_options.compound,
+		                          anchor=label_options.anchor,
+		                          wraplength=label_options.wraplength,
+		                          **label_options.kwargs
+		                          )
 		if entry_options.textvariable is not None:
 			# Aggiungi un listener all'input per aggiornare il valore della textvariable (devo fare cosi' per forza perche' senno' sparisce il placeholder)
 			def update_variable(e):
@@ -404,37 +412,60 @@ class LabelledInput(CTkEntry):
 
 class MainApplication(ctk.CTk):
 	def __title_menu(self):
-		self.title("Insulinometro")
-		self.geometry("800x600")
-		menu = ExtendedTitleMenu(master=self)
 
-		file_button_container = ctk.CTkFrame(menu, fg_color="transparent")
-		file_button = ctk.CTkButton(file_button_container, text="File", text_color=self.app_theme.primary_text,
-									fg_color=self.app_theme.transparent, corner_radius=0, command=self.__file_button)
+		menu = ExtendedTitleMenu(self, app_theme=self.app_theme,
+		                         title_bar_color=color_str_to_hex(self.app_theme.element_background),
+		                         y_offset=4,
+		                         )
 
-		device_button_container = ctk.CTkFrame(menu, fg_color="transparent")
-		device_button = ctk.CTkButton(device_button_container, text="Device", text_color=self.app_theme.primary_text,
-									  fg_color=self.app_theme.transparent, corner_radius=0,
-									  command=self.__device_button)
+		file_btn = menu.add_cascade("File",
+		                            command=self.__file_button,
+		                            font=CTkFont(family="Poppins", size=14, weight="bold"),
+		                            text_color=self.app_theme.primary_text,
+		                            hover_text_color=self.app_theme.secondary_text,
+		                            fg_color=self.app_theme.element_background,
+		                            bg_color=self.app_theme.transparent,
+		                            hover_color=self.app_theme.element_background,
+		                            corner_radius=0,
+		                            )
+		file_btn.grid_configure(padx=(0, 15))
 
-		battery_button_container = ctk.CTkFrame(menu, fg_color="transparent")
-		battery_button = ctk.CTkButton(battery_button_container, text="🔋", text_color=self.app_theme.primary_text,
-									   fg_color=self.app_theme.transparent, corner_radius=0,
-									   command=self.__battery_button)
+		device_btn = menu.add_cascade("Device",
+		                              command=self.__device_button,
+		                              font=CTkFont(family="Poppins", size=14, weight="bold"),
+		                              text_color=self.app_theme.primary_text,
+		                              hover_text_color=self.app_theme.secondary_text,
+		                              fg_color=self.app_theme.element_background,
+		                              bg_color=self.app_theme.transparent,
+		                              hover_color=self.app_theme.element_background,
+		                              corner_radius=0,
+		                              )
 
-		signal_button_container = ctk.CTkFrame(menu, fg_color="transparent")
-		signal_button = ctk.CTkButton(signal_button_container, text="📶", text_color=self.app_theme.primary_text,
-									  fg_color=self.app_theme.transparent, corner_radius=0,
-									  command=self.__signal_button)
+		device_btn.grid_configure(padx=(0, 30))
+		signal_btn = menu.add_cascade("",
+		                              command=self.__signal_button,
+		                              text_color=self.app_theme.primary_text,
+		                              fg_color=self.app_theme.element_background,
+		                              bg_color=self.app_theme.transparent,
+		                              hover_color=self.app_theme.element_background,
+		                              corner_radius=0,
+		                              image=icon_to_image("wifi", scale_to_width=14, fill=self.app_theme.primary_text)
+		                              )
 
-		menu.add_frame(file_button_container)
-		menu.add_frame(device_button_container)
-		menu.add_frame(battery_button_container)
-		menu.add_frame(signal_button_container)
+		battery_btn = menu.add_cascade("",
+		                               command=self.__battery_button,
+		                               text_color=self.app_theme.primary_text,
+		                               fg_color=self.app_theme.element_background,
+		                               bg_color=self.app_theme.transparent,
+		                               hover_color=self.app_theme.element_background,
+		                               corner_radius=0,
+		                               image=icon_to_image("battery-full", scale_to_width=14,
+		                                                   fill=self.app_theme.primary_text)
+		                               )
 
 	def __main_frame(self):
 		self.main_frame = ctk.CTkFrame(self, fg_color=self.app_theme.secondary_background, corner_radius=0)
-		self.main_frame.grid(row=0, column=0, sticky=ctk.NSEW)
+		self.main_frame.grid(row=1, column=0, sticky=ctk.NSEW)
 		# Sezione dei grafici e dei controlli
 		graph_section_container = ctk.CTkFrame(self.main_frame, fg_color="transparent", corner_radius=0)
 		graph_section_container.pack(side="top", fill="both", expand=True, padx=10, pady=25)
@@ -464,43 +495,43 @@ class MainApplication(ctk.CTk):
 		# Sezione dei controlli
 		# Suddivisione finestra
 		controller_container = ctk.CTkFrame(graph_section_container, fg_color=self.app_theme.transparent,
-											corner_radius=5)
+		                                    corner_radius=5)
 		controller_container.pack(side="left", fill="both")
 
 		# Tab view dei controlli (Fixed, Sweep)
 		measurement_mode_tabview = ExtendedTabView(controller_container,
-												   fg_color=self.app_theme.element_background,
-												   text_color=(
-													   self.app_theme.light_gray_text, self.app_theme.primary_text),
-												   text_color_unselected=self.app_theme.gray_text,
-												   width=250,
-												   segmented_button_fg_color=self.app_theme.element_secondary_background,
-												   segmented_button_selected_color=scale_lightness(
-													   self.app_theme.element_secondary_background, 0.96),
-												   segmented_button_unselected_color=self.app_theme.element_secondary_background,
-												   segmented_button_unselected_hover_color=scale_lightness(
-													   self.app_theme.element_secondary_background, 0.95),
-												   segmented_button_selected_hover_color=scale_lightness(
-													   self.app_theme.element_secondary_background, 0.96),
-												   segmented_button_font=CTkFont(family="Poppins", size=16,
-																				 weight="bold"),
-												   segmented_button_background_corner_colors=(
-													   self.app_theme.secondary_background,
-													   self.app_theme.secondary_background,
-													   self.app_theme.element_secondary_background,
-													   self.app_theme.element_secondary_background
-												   ),
-												   segmented_button_height=40,
-												   segmented_button_padding_x=(0, 0),
-												   segmented_button_padding_y=(0, 0),
+		                                           fg_color=self.app_theme.element_background,
+		                                           text_color=(
+			                                           self.app_theme.light_gray_text, self.app_theme.primary_text),
+		                                           text_color_unselected=self.app_theme.gray_text,
+		                                           width=250,
+		                                           segmented_button_fg_color=self.app_theme.element_secondary_background,
+		                                           segmented_button_selected_color=scale_lightness(
+			                                           self.app_theme.element_secondary_background, 0.96),
+		                                           segmented_button_unselected_color=self.app_theme.element_secondary_background,
+		                                           segmented_button_unselected_hover_color=scale_lightness(
+			                                           self.app_theme.element_secondary_background, 0.95),
+		                                           segmented_button_selected_hover_color=scale_lightness(
+			                                           self.app_theme.element_secondary_background, 0.96),
+		                                           segmented_button_font=CTkFont(family="Poppins", size=16,
+		                                                                         weight="bold"),
+		                                           segmented_button_background_corner_colors=(
+			                                           self.app_theme.secondary_background,
+			                                           self.app_theme.secondary_background,
+			                                           self.app_theme.element_secondary_background,
+			                                           self.app_theme.element_secondary_background
+		                                           ),
+		                                           segmented_button_height=40,
+		                                           segmented_button_padding_x=(0, 0),
+		                                           segmented_button_padding_y=(0, 0),
 
-												   segmented_button_sticky="news",
-												   segmented_button_row=0,
+		                                           segmented_button_sticky="news",
+		                                           segmented_button_row=0,
 
-												   corner_radius=5,
-												   border_width=0,
-												   anchor="n"
-												   )
+		                                           corner_radius=5,
+		                                           border_width=0,
+		                                           anchor="n"
+		                                           )
 		measurement_mode_tabview.pack(side="top", fill="both")
 
 		fixed_tab = measurement_mode_tabview.add("Fixed")
@@ -512,100 +543,100 @@ class MainApplication(ctk.CTk):
 		fixed_input_container.pack(side="top", fill="both")
 
 		frequency_input = LabelledInput(fixed_input_container,
-										entry_options=LabelledInput.EntryOptions(
-											textvariable=self.frequency_string,
-											placeholder_text="Frequenza (Hz)",
-										),
-										label_options=LabelledInput.LabelOptions(
-											text="Frequenza",
-										),
-										app_theme=self.app_theme
-										)
+		                                entry_options=LabelledInput.EntryOptions(
+			                                textvariable=self.frequency_string,
+			                                placeholder_text="Frequenza (Hz)",
+		                                ),
+		                                label_options=LabelledInput.LabelOptions(
+			                                text="Frequenza",
+		                                ),
+		                                app_theme=self.app_theme
+		                                )
 		frequency_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		fixed_magnitude_input = LabelledInput(fixed_input_container,
-											  entry_options=LabelledInput.EntryOptions(
-												  textvariable=self.fixed_magnitude_string,
-												  placeholder_text="Ampiezza (mV)",
-											  ),
-											  label_options=LabelledInput.LabelOptions(
-												  text="Ampiezza",
-											  ),
-											  app_theme=self.app_theme
-											  )
+		                                      entry_options=LabelledInput.EntryOptions(
+			                                      textvariable=self.fixed_magnitude_string,
+			                                      placeholder_text="Ampiezza (mV)",
+		                                      ),
+		                                      label_options=LabelledInput.LabelOptions(
+			                                      text="Ampiezza",
+		                                      ),
+		                                      app_theme=self.app_theme
+		                                      )
 		fixed_magnitude_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		# Finestre di input - Sweep
 		sweep_input_container = ctk.CTkScrollableFrame(sweep_tab, fg_color=self.app_theme.element_background,
-													   corner_radius=5,
-													   scrollbar_button_color=self.app_theme.light_gray_text,
-													   scrollbar_button_hover_color=scale_lightness(
-														   self.app_theme.light_gray_text, 0.94))
+		                                               corner_radius=5,
+		                                               scrollbar_button_color=self.app_theme.light_gray_text,
+		                                               scrollbar_button_hover_color=scale_lightness(
+			                                               self.app_theme.light_gray_text, 0.94))
 		sweep_input_container.pack(side="top", fill="both")
 
 		sweep_magnitude_input = LabelledInput(sweep_input_container,
-											  entry_options=LabelledInput.EntryOptions(
-												  textvariable=self.sweep_magnitude_string,
-												  placeholder_text="Ampiezza (mV)",
-											  ),
-											  label_options=LabelledInput.LabelOptions(
-												  text="Ampiezza",
-											  ),
-											  app_theme=self.app_theme
-											  )
+		                                      entry_options=LabelledInput.EntryOptions(
+			                                      textvariable=self.sweep_magnitude_string,
+			                                      placeholder_text="Ampiezza (mV)",
+		                                      ),
+		                                      label_options=LabelledInput.LabelOptions(
+			                                      text="Ampiezza",
+		                                      ),
+		                                      app_theme=self.app_theme
+		                                      )
 		sweep_magnitude_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		frequency_start_input = LabelledInput(sweep_input_container,
-											  entry_options=LabelledInput.EntryOptions(
-												  textvariable=self.frequency_start_string,
-												  placeholder_text="Frequenza (Hz)",
-											  ),
-											  label_options=LabelledInput.LabelOptions(
-												  text="Frequenza iniziale",
-											  ),
-											  app_theme=self.app_theme
-											  )
+		                                      entry_options=LabelledInput.EntryOptions(
+			                                      textvariable=self.frequency_start_string,
+			                                      placeholder_text="Frequenza (Hz)",
+		                                      ),
+		                                      label_options=LabelledInput.LabelOptions(
+			                                      text="Frequenza iniziale",
+		                                      ),
+		                                      app_theme=self.app_theme
+		                                      )
 		frequency_start_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		frequency_end_input = LabelledInput(sweep_input_container,
-											entry_options=LabelledInput.EntryOptions(
-												textvariable=self.frequency_end_string,
-												placeholder_text="Frequenza (Hz)",
-											),
-											label_options=LabelledInput.LabelOptions(
-												text="Frequenza finale",
-											),
-											app_theme=self.app_theme
-											)
+		                                    entry_options=LabelledInput.EntryOptions(
+			                                    textvariable=self.frequency_end_string,
+			                                    placeholder_text="Frequenza (Hz)",
+		                                    ),
+		                                    label_options=LabelledInput.LabelOptions(
+			                                    text="Frequenza finale",
+		                                    ),
+		                                    app_theme=self.app_theme
+		                                    )
 		frequency_end_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		points_number_input = LabelledInput(sweep_input_container,
-											entry_options=LabelledInput.EntryOptions(
-												textvariable=self.points_number,
-												placeholder_text="Numero di punti",
-											),
-											label_options=LabelledInput.LabelOptions(
-												text="Numero di punti",
-											),
-											app_theme=self.app_theme
-											)
+		                                    entry_options=LabelledInput.EntryOptions(
+			                                    textvariable=self.points_number,
+			                                    placeholder_text="Numero di punti",
+		                                    ),
+		                                    label_options=LabelledInput.LabelOptions(
+			                                    text="Numero di punti",
+		                                    ),
+		                                    app_theme=self.app_theme
+		                                    )
 		points_number_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		cycles_number_input = LabelledInput(sweep_input_container,
-											entry_options=LabelledInput.EntryOptions(
-												textvariable=self.cycles_number,
-												placeholder_text="Numero di cicli",
-											),
-											label_options=LabelledInput.LabelOptions(
-												text="Numero di cicli",
-											),
-											app_theme=self.app_theme
-											)
+		                                    entry_options=LabelledInput.EntryOptions(
+			                                    textvariable=self.cycles_number,
+			                                    placeholder_text="Numero di cicli",
+		                                    ),
+		                                    label_options=LabelledInput.LabelOptions(
+			                                    text="Numero di cicli",
+		                                    ),
+		                                    app_theme=self.app_theme
+		                                    )
 		cycles_number_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		# Pulsanti di controllo
 		controls_section = ctk.CTkFrame(controller_container, fg_color=self.app_theme.element_background,
-										corner_radius=5)
+		                                corner_radius=5)
 		controls_section.pack(fill="both", expand=True)
 
 		button_container = ctk.CTkFrame(controls_section, fg_color="transparent")
@@ -616,26 +647,27 @@ class MainApplication(ctk.CTk):
 		button_container.columnconfigure(2, weight=1)
 
 		start_button = ctk.CTkButton(button_container, text="START", fg_color=self.app_theme.primary_button,
-									 font=CTkFont(family="Poppins", size=14, weight="bold"),
-									 text_color=self.app_theme.primary_button_text, corner_radius=5,
-									 hover_color=scale_lightness(self.app_theme.primary_button, 0.95),
-									 width=70,
-									 command=self.__start_button)
+		                             font=CTkFont(family="Poppins", size=14, weight="bold"),
+		                             text_color=self.app_theme.primary_button_text, corner_radius=5,
+		                             hover_color=scale_lightness(self.app_theme.primary_button, 0.95),
+		                             width=70,
+		                             command=self.__start_button)
 		start_button.grid(row=0, column=0)
 
 		stop_button = ctk.CTkButton(button_container, text="STOP", fg_color=self.app_theme.danger_button,
-									font=CTkFont(family="Poppins", size=14, weight="bold"),
-									text_color=self.app_theme.danger_button_text, corner_radius=5,
-									hover_color=scale_lightness(self.app_theme.danger_button, 0.95),
-									width=70,
-									command=self.__stop_button)
+		                            font=CTkFont(family="Poppins", size=14, weight="bold"),
+		                            text_color=self.app_theme.danger_button_text, corner_radius=5,
+		                            hover_color=scale_lightness(self.app_theme.danger_button, 0.95),
+		                            width=70,
+		                            command=self.__stop_button)
 		stop_button.grid(row=0, column=1)
 
-		marker_button = ctk.CTkButton(button_container, text="📌", fg_color=self.app_theme.warning_button,
-									  text_color=self.app_theme.warning_button_text, corner_radius=5,
-									  hover_color=scale_lightness(self.app_theme.warning_button, 0.95),
-									  width=40,
-									  command=self.__marker_button)
+		marker_button = ctk.CTkButton(button_container, text="", fg_color=self.app_theme.warning_button,
+		                              text_color=self.app_theme.warning_button_text, corner_radius=5,
+		                              hover_color=scale_lightness(self.app_theme.warning_button, 0.95),
+		                              width=40,
+		                              image=icon_to_image("map-pin", scale_to_width=8, fill=self.app_theme.warning_button_text),
+		                              command=self.__marker_button)
 		marker_button.grid(row=0, column=2)
 
 		pass
@@ -643,40 +675,40 @@ class MainApplication(ctk.CTk):
 	def __bottom_frame(self):
 		# Sezione dati
 		self.bottom_frame = ctk.CTkFrame(self, fg_color=self.app_theme.primary_background, corner_radius=0)
-		self.bottom_frame.grid(row=1, column=0, sticky=ctk.NSEW)
+		self.bottom_frame.grid(row=2, column=0, sticky=ctk.NSEW)
 
 		bottom_container = ctk.CTkFrame(self.bottom_frame, fg_color=self.app_theme.transparent, corner_radius=0)
 		bottom_container.pack(side="top", fill="both", expand=True, padx=5, pady=(0, 5))
 
 		# Tab view dei dati e dei log
 		tools_tabview = ExtendedTabView(bottom_container,
-										fg_color=self.app_theme.transparent,
-										text_color=(self.app_theme.light_gray_text, self.app_theme.primary_text),
-										text_color_unselected=self.app_theme.gray_text,
-										text_hover_color=self.app_theme.secondary_text,
-										segmented_button_fg_color=self.app_theme.primary_background,
-										segmented_button_selected_color=self.app_theme.primary_background,
-										segmented_button_unselected_color=self.app_theme.primary_background,
-										segmented_button_unselected_hover_color=self.app_theme.primary_background,
-										segmented_button_selected_hover_color=self.app_theme.primary_background,
-										segmented_button_font=CTkFont(family="Poppins", size=16, weight="bold"),
-										corner_radius=5,
-										button_padding_x=(0, 50),
-										selected_style="underline",
-										selected_style_color=self.app_theme.primary_text,
-										anchor="w",
-										)
+		                                fg_color=self.app_theme.transparent,
+		                                text_color=(self.app_theme.light_gray_text, self.app_theme.primary_text),
+		                                text_color_unselected=self.app_theme.gray_text,
+		                                text_hover_color=self.app_theme.secondary_text,
+		                                segmented_button_fg_color=self.app_theme.primary_background,
+		                                segmented_button_selected_color=self.app_theme.primary_background,
+		                                segmented_button_unselected_color=self.app_theme.primary_background,
+		                                segmented_button_unselected_hover_color=self.app_theme.primary_background,
+		                                segmented_button_selected_hover_color=self.app_theme.primary_background,
+		                                segmented_button_font=CTkFont(family="Poppins", size=16, weight="bold"),
+		                                corner_radius=5,
+		                                button_padding_x=(0, 50),
+		                                selected_style="underline",
+		                                selected_style_color=self.app_theme.primary_text,
+		                                anchor="w",
+		                                )
 		tools_tabview.pack(side="top", fill="both", anchor="n", padx=30)
 		data_tab = tools_tabview.add("Data")
 		logs_tab = tools_tabview.add("Logs")
 		tools_tabview.set("Data")
 
 		loading_bar_container = ctk.CTkFrame(tools_tabview.segmented_button, fg_color=self.app_theme.transparent,
-											 corner_radius=0)
+		                                     corner_radius=0)
 		loading_bar_container.grid(row=0, column=2, sticky="nswe")
 		loading_bar = ctk.CTkProgressBar(loading_bar_container, corner_radius=5, width=400,
-										 fg_color=self.app_theme.light_gray_text,
-										 progress_color=self.app_theme.primary_text)
+		                                 fg_color=self.app_theme.light_gray_text,
+		                                 progress_color=self.app_theme.primary_text)
 		loading_bar.pack(side="left", anchor="c")
 
 		# Tabella dei log
@@ -685,25 +717,25 @@ class MainApplication(ctk.CTk):
 
 		# Tabella dei dati
 		table_frame = ctk.CTkFrame(master=data_tab, fg_color=self.app_theme.element_background,
-								   corner_radius=5)
+		                           corner_radius=5)
 		table_frame.pack(side="top", fill="both", expand=True)
 
 		treeview_style = ttk.Style()
 		treeview_style.theme_use('default')
 		treeview_style.configure("data.Treeview",
-								 background=self.app_theme.element_background,
-								 foreground=self.app_theme.secondary_text,
-								 borderwidth=0,
-								 font=CTkFont(family="Poppins", size=14, weight="bold")
-								 )
+		                         background=self.app_theme.element_background,
+		                         foreground=self.app_theme.secondary_text,
+		                         borderwidth=0,
+		                         font=CTkFont(family="Poppins", size=14, weight="bold")
+		                         )
 
 		treeview_style.configure("data.Treeview.Heading",
-								 background=self.app_theme.element_background,
-								 foreground=self.app_theme.primary_text,
-								 fieldbackground="cyan",
-								 borderwidth=0,
-								 font=CTkFont(family="Poppins", size=14, weight="bold")
-								 )
+		                         background=self.app_theme.element_background,
+		                         foreground=self.app_theme.primary_text,
+		                         fieldbackground="cyan",
+		                         borderwidth=0,
+		                         font=CTkFont(family="Poppins", size=14, weight="bold")
+		                         )
 
 		area = ("Frequenza", "Fase", "Ampiezza")
 
@@ -712,7 +744,7 @@ class MainApplication(ctk.CTk):
 			data_table.column(i, width=70, anchor='c')
 			data_table.heading(i, text=area[i])
 		for i in range(10):
-			data_table.insert('', -1, i, values=("data1 " + str(i), "data2 "+ str(i), "data3 "+ str(i)))
+			data_table.insert('', -1, i, values=("data1 " + str(i), "data2 " + str(i), "data3 " + str(i)))
 
 		data_table.pack(side="top", fill="both", padx=2, pady=2)
 		pass
@@ -720,6 +752,9 @@ class MainApplication(ctk.CTk):
 	def __init__(self, app_theme: AppTheme = AppTheme()):
 		super().__init__(fg_color=app_theme.primary_background)
 		self.app_theme = app_theme
+		self.geometry("800x600")
+		self.title("")
+		self.minsize(800, 600)
 
 		self.frequency_string = ctk.StringVar()
 		self.fixed_magnitude_string = ctk.StringVar()
@@ -730,15 +765,16 @@ class MainApplication(ctk.CTk):
 		self.points_number = ctk.StringVar()
 		self.cycles_number = ctk.StringVar()
 
-		# Menu titolo finestra
-		self.__title_menu()
-
 		# Suddivisione griglia layout finestra
-		self.rowconfigure(0, weight=2)
-		self.rowconfigure(1, weight=1)
-		self.columnconfigure(0, weight=100)
+		self.rowconfigure(0, weight=0)
+		self.rowconfigure(1, weight=2)
+		self.rowconfigure(2, weight=1)
+
+		self.columnconfigure(0, weight=1)
 
 		# Creazione finestre
+
+		self.__title_menu()
 		self.__main_frame()
 		self.__bottom_frame()
 
