@@ -1,4 +1,6 @@
-﻿from tkinter import Widget, ttk
+﻿import re
+from ast import literal_eval
+from tkinter import Widget, ttk, StringVar, IntVar
 from typing import Union, Optional, Tuple, Callable, Any
 
 import customtkinter as ctk
@@ -14,10 +16,19 @@ from matplotlib.figure import Figure
 from matplotlib.pyplot import subplots
 
 
-#from tkfontawesome import icon_to_image
+# from tkfontawesome import icon_to_image
 
 
 # from PIL import Image, ImageDraw, ImageFont
+
+
+def clamp(value, min_val, max_val):
+	if value <= min_val:
+		return min_val
+	elif value >= max_val:
+		return max_val
+
+	return value
 
 
 def scale_lightness(hexStr, scale_l):
@@ -301,6 +312,9 @@ class LabelledInput(CTkEntry):
 		             placeholder_text_color: Optional[Union[str, Tuple[str, str]]] = None,
 
 		             textvariable: Union[ctk.Variable, None] = None,
+		             minvalue: Optional[int] = None,  # only for num var
+		             maxvalue: Optional[int] = None,
+
 		             placeholder_text: Union[str, None] = None,
 		             font: Optional[Union[tuple, CTkFont]] = None,
 		             state: str = ctk.NORMAL,
@@ -315,6 +329,8 @@ class LabelledInput(CTkEntry):
 			self.text_color = text_color
 			self.placeholder_text_color = placeholder_text_color
 			self.textvariable = textvariable
+			self.minvalue = minvalue
+			self.maxvalue = maxvalue
 			self.placeholder_text = placeholder_text
 			self.font = font
 			self.state = state
@@ -360,6 +376,7 @@ class LabelledInput(CTkEntry):
 	             app_theme: AppTheme = AppTheme(),
 	             **kwargs):
 		super().__init__(master, **kwargs)
+		self._entry_options = entry_options
 		self.current_input_variable = entry_options.textvariable
 		self.container = ctk.CTkFrame(master, fg_color="transparent", **kwargs)
 		self.input = ctk.CTkEntry(self.container,
@@ -396,7 +413,19 @@ class LabelledInput(CTkEntry):
 		if entry_options.textvariable is not None:
 			# Aggiungi un listener all'input per aggiornare il valore della textvariable (devo fare cosi' per forza perche' senno' sparisce il placeholder)
 			def update_variable(e):
-				self.current_input_variable.set(self.input.get())
+				curr_input = self.input.get()
+				if type(self.current_input_variable) is IntVar:
+					# remove all non numeric characters from curr_input
+					try:
+						int_input = int(curr_input or 0, 10)
+					except:
+						int_input = 0
+
+					if self._entry_options.maxvalue is not None and self._entry_options.minvalue is not None:
+						clamped_value = clamp(int_input, self._entry_options.minvalue, self._entry_options.maxvalue)
+						self.current_input_variable.set(value=clamped_value)
+
+				# self.current_input_variable.set(curr_input)
 
 			self.input.bind("<KeyRelease>", update_variable)
 
@@ -423,8 +452,8 @@ class MainApplication(ctk.CTk):
 		menu = ExtendedTitleMenu(self, app_theme=self.app_theme,
 		                         title_bar_color=color_str_to_hex(self.app_theme.element_background),
 		                         y_offset=4,
-								 min_width=self._min_width,
-								 min_height=self._min_height
+		                         min_width=self._min_width,
+		                         min_height=self._min_height
 		                         )
 
 		file_btn = menu.add_cascade("File",
@@ -458,7 +487,7 @@ class MainApplication(ctk.CTk):
 		                              bg_color=self.app_theme.transparent,
 		                              hover_color=self.app_theme.element_background,
 		                              corner_radius=0,
-		                              #image=icon_to_image("wifi", scale_to_width=14, fill=self.app_theme.primary_text)
+		                              # image=icon_to_image("wifi", scale_to_width=14, fill=self.app_theme.primary_text)
 		                              )
 
 		battery_btn = menu.add_cascade("🔋",
@@ -468,7 +497,7 @@ class MainApplication(ctk.CTk):
 		                               bg_color=self.app_theme.transparent,
 		                               hover_color=self.app_theme.element_background,
 		                               corner_radius=0,
-		                               #image=icon_to_image("battery-full", scale_to_width=14, fill=self.app_theme.primary_text)
+		                               # image=icon_to_image("battery-full", scale_to_width=14, fill=self.app_theme.primary_text)
 		                               )
 
 	def __main_frame(self):
@@ -520,7 +549,7 @@ class MainApplication(ctk.CTk):
 		# Sezione dei controlli
 		# Suddivisione finestra
 		graph_controls_container = ctk.CTkFrame(graph_section, fg_color=self.app_theme.transparent,
-		                                    corner_radius=5)
+		                                        corner_radius=5)
 		graph_controls_container.grid(row=0, column=3, sticky=ctk.NSEW, rowspan=2)
 
 		# Tab view dei controlli (Fixed, Sweep)
@@ -568,9 +597,23 @@ class MainApplication(ctk.CTk):
 		fixed_input_container = ctk.CTkFrame(fixed_tab, fg_color=self.app_theme.element_background, corner_radius=5)
 		fixed_input_container.pack(side="top", fill="both")
 
+		text_fixed_input = LabelledInput(fixed_input_container,
+		                                 entry_options=LabelledInput.EntryOptions(
+			                                 textvariable=self.fixed_test_string,
+			                                 placeholder_text="Test (Ohm)",
+			                                 minvalue=1,
+			                                 maxvalue=500
+		                                 ),
+		                                 label_options=LabelledInput.LabelOptions(
+			                                 text="Test"
+		                                 ),
+		                                 app_theme=self.app_theme
+		                                 )
+		text_fixed_input.pack(side="top", fill="x", padx=5, pady=5)
+
 		frequency_input = LabelledInput(fixed_input_container,
 		                                entry_options=LabelledInput.EntryOptions(
-			                                textvariable=self.frequency_string,
+			                                textvariable=self.fixed_frequency_string,
 			                                placeholder_text="Frequenza (Hz)",
 		                                ),
 		                                label_options=LabelledInput.LabelOptions(
@@ -599,6 +642,18 @@ class MainApplication(ctk.CTk):
 		                                               scrollbar_button_hover_color=scale_lightness(
 			                                               self.app_theme.light_gray_text, 0.94))
 		sweep_input_container.pack(side="top", fill="both", expand=True)
+
+		text_sweep_input = LabelledInput(sweep_input_container,
+		                                 entry_options=LabelledInput.EntryOptions(
+			                                 textvariable=self.sweep_test_string,
+			                                 placeholder_text="Test (Ohm)"
+		                                 ),
+		                                 label_options=LabelledInput.LabelOptions(
+			                                 text="Test"
+		                                 ),
+		                                 app_theme=self.app_theme
+		                                 )
+		text_sweep_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		sweep_magnitude_input = LabelledInput(sweep_input_container,
 		                                      entry_options=LabelledInput.EntryOptions(
@@ -689,11 +744,11 @@ class MainApplication(ctk.CTk):
 		stop_button.grid(row=0, column=1)
 
 		marker_button = ctk.CTkButton(button_container, text="⫯", fg_color=self.app_theme.warning_button,
-									  font=CTkFont(family="Poppins", size=19),
+		                              font=CTkFont(family="Poppins", size=19),
 		                              text_color=self.app_theme.warning_button_text, corner_radius=5,
 		                              hover_color=scale_lightness(self.app_theme.warning_button, 0.95),
 		                              width=40,
-		                              #image=icon_to_image("map-pin", scale_to_width=8, fill=self.app_theme.warning_button_text),
+		                              # image=icon_to_image("map-pin", scale_to_width=8, fill=self.app_theme.warning_button_text),
 		                              command=self.__marker_button)
 		marker_button.grid(row=0, column=2)
 
@@ -783,7 +838,10 @@ class MainApplication(ctk.CTk):
 		self.title("")
 		self.minsize(800, 600)
 
-		self.frequency_string = ctk.StringVar()
+		self.fixed_test_string = ctk.IntVar()
+		self.sweep_test_string = ctk.StringVar()
+
+		self.fixed_frequency_string = ctk.StringVar()
 		self.fixed_magnitude_string = ctk.StringVar()
 
 		self.sweep_magnitude_string = ctk.StringVar()
@@ -807,7 +865,7 @@ class MainApplication(ctk.CTk):
 
 	# Funzioni dei pulsanti
 	def __start_button(self):
-		print(f"Frequenza: {self.frequency_string.get()} \nAmpiezza: {self.fixed_magnitude_string.get()}")
+		print(f"Test: {self.fixed_test_string.get()}")
 
 	def __stop_button(self):
 		print("stop button")
