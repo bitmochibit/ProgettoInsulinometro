@@ -1,6 +1,6 @@
 ﻿import re
 from ast import literal_eval
-from tkinter import Widget, ttk, StringVar, IntVar
+from tkinter import Widget, ttk, StringVar, IntVar, END
 from typing import Union, Optional, Tuple, Callable, Any
 
 import customtkinter as ctk
@@ -40,7 +40,7 @@ def scale_lightness(hexStr, scale_l):
 	return "#" + "".join(f"{int(255 * x):02x}" for x in new_rgb)
 
 
-# emoji come icone temporanee
+# emoji come icone
 
 # Classe per la definizione statica del tema, sara' possibile estenderla per sovrascrivere i colori
 class AppTheme:
@@ -299,6 +299,7 @@ class ExtendedTabView(CTkTabview):
 
 class LabelledInput(CTkEntry):
 	class EntryOptions:
+		ENTRY_TYPE = Union["text", "number"]
 		def __init__(self,
 		             width: int = 140,
 		             height: int = 28,
@@ -314,6 +315,8 @@ class LabelledInput(CTkEntry):
 		             textvariable: Union[ctk.Variable, None] = None,
 		             minvalue: Optional[int] = None,  # only for num var
 		             maxvalue: Optional[int] = None,
+
+		             type: ENTRY_TYPE = "text",
 
 		             placeholder_text: Union[str, None] = None,
 		             font: Optional[Union[tuple, CTkFont]] = None,
@@ -331,6 +334,7 @@ class LabelledInput(CTkEntry):
 			self.textvariable = textvariable
 			self.minvalue = minvalue
 			self.maxvalue = maxvalue
+			self.type = type
 			self.placeholder_text = placeholder_text
 			self.font = font
 			self.state = state
@@ -369,6 +373,70 @@ class LabelledInput(CTkEntry):
 			self.wraplength = wraplength
 			self.kwargs = kwargs
 
+	def _validate_digit(self, P):
+		if str.isdigit(P):
+			return True
+		return False
+
+	def _validate_range(self, P):
+		# If the input is an empty string, return True
+		if not self._validate_digit(P):
+			return False
+
+
+		# Try to convert the input to an integer, if it fails, return False
+		try:
+			int_input = int(P)
+		except ValueError:
+			return False
+
+		print("cacca")
+
+		# Retrieve minvalue and maxvalue from entry options
+		minval = self._entry_options.minvalue
+		maxval = self._entry_options.maxvalue
+
+		# If both min and max are None, any integer is valid
+		if minval is None and maxval is None:
+			self._last_valid_value = P  # Update last valid value
+			return True
+
+		# If both minvalue and maxvalue are defined, check if the input is within the range
+		if minval is not None and maxval is not None:
+			if minval <= int_input <= maxval:
+				self._last_valid_value = P  # Update last valid value
+				return True
+			return False
+
+		# If only minvalue is defined, check that the input is greater or equal to minvalue
+		if minval is not None:
+			if int_input >= minval:
+				self._last_valid_value = P  # Update last valid value
+				return True
+			return False
+
+		# If only maxvalue is defined, check that the input is less or equal to maxvalue
+		if maxval is not None:
+			if int_input <= maxval:
+				self._last_valid_value = P  # Update last valid value
+				return True
+			return False
+
+		return False
+
+	def _revert_to_last_valid(self):
+		# This function is called if validation fails, and restores the last valid value
+		valid_value = self._last_valid_value or self._entry_options.minvalue or 0
+		self.input.delete(0, "end")
+		self.input.insert(0, valid_value)
+		self.current_input_variable.set(valid_value)
+
+	def validate(self):
+		# Validate the current input
+		if self._entry_options.type == "number":
+			if not self._validate_range(self.input.get()):
+				self._revert_to_last_valid()
+
 	def __init__(self,
 	             master,
 	             entry_options: EntryOptions = EntryOptions(),
@@ -394,6 +462,13 @@ class LabelledInput(CTkEntry):
 		                          state=entry_options.state,
 		                          **entry_options.kwargs
 		                          )
+		self._last_valid_value = None
+		if self._entry_options.maxvalue is not None or self._entry_options.minvalue is not None and self._entry_options.type == "number":
+			validate_ra = (self.register(self._validate_range))
+			invalid_ra = (self.register(self._revert_to_last_valid))
+			self.input.configure(validate="focusout", validatecommand=(validate_ra, "%P")) # %P = valore attuale dell'entry
+			self.input._entry.configure(invalidcommand=invalid_ra)
+
 		self.label = ctk.CTkLabel(self.container,
 		                          width=label_options.width,
 		                          height=label_options.height,
@@ -410,23 +485,12 @@ class LabelledInput(CTkEntry):
 		                          wraplength=label_options.wraplength,
 		                          **label_options.kwargs
 		                          )
+
 		if entry_options.textvariable is not None:
 			# Aggiungi un listener all'input per aggiornare il valore della textvariable (devo fare cosi' per forza perche' senno' sparisce il placeholder)
 			def update_variable(e):
 				curr_input = self.input.get()
-				if type(self.current_input_variable) is IntVar:
-					# remove all non numeric characters from curr_input
-					try:
-						int_input = int(curr_input or 0, 10)
-					except:
-						int_input = 0
-
-					if self._entry_options.maxvalue is not None and self._entry_options.minvalue is not None:
-						clamped_value = clamp(int_input, self._entry_options.minvalue, self._entry_options.maxvalue)
-						self.current_input_variable.set(value=clamped_value)
-
-				# self.current_input_variable.set(curr_input)
-
+				self.current_input_variable.set(curr_input)
 			self.input.bind("<KeyRelease>", update_variable)
 
 		self.label.pack(side="top", fill="both")
@@ -597,19 +661,20 @@ class MainApplication(ctk.CTk):
 		fixed_input_container = ctk.CTkFrame(fixed_tab, fg_color=self.app_theme.element_background, corner_radius=5)
 		fixed_input_container.pack(side="top", fill="both")
 
-		text_fixed_input = LabelledInput(fixed_input_container,
+		self.test_ohm_input = LabelledInput(fixed_input_container,
 		                                 entry_options=LabelledInput.EntryOptions(
 			                                 textvariable=self.fixed_test_string,
 			                                 placeholder_text="Test (Ohm)",
-			                                 minvalue=1,
-			                                 maxvalue=500
+			                                 minvalue=100,
+			                                 maxvalue=500,
+			                                 type="number"
 		                                 ),
 		                                 label_options=LabelledInput.LabelOptions(
 			                                 text="Test"
 		                                 ),
 		                                 app_theme=self.app_theme
 		                                 )
-		text_fixed_input.pack(side="top", fill="x", padx=5, pady=5)
+		self.test_ohm_input.pack(side="top", fill="x", padx=5, pady=5)
 
 		frequency_input = LabelledInput(fixed_input_container,
 		                                entry_options=LabelledInput.EntryOptions(
@@ -838,7 +903,7 @@ class MainApplication(ctk.CTk):
 		self.title("")
 		self.minsize(800, 600)
 
-		self.fixed_test_string = ctk.IntVar()
+		self.fixed_test_string = ctk.IntVar(value=1)
 		self.sweep_test_string = ctk.StringVar()
 
 		self.fixed_frequency_string = ctk.StringVar()
@@ -865,6 +930,7 @@ class MainApplication(ctk.CTk):
 
 	# Funzioni dei pulsanti
 	def __start_button(self):
+		self.test_ohm_input.validate()
 		print(f"Test: {self.fixed_test_string.get()}")
 
 	def __stop_button(self):
