@@ -5,12 +5,11 @@ from typing import Union, Optional, Tuple, Callable, Any
 import customtkinter as ctk
 import matplotlib as plt
 from CTkMenuBar import CTkTitleMenu
-from PIL.ImageOps import expand
 from customtkinter import CTkFrame, CTkImage, CTkEntry, CTkFont, CTkTabview, CTkButton, CTkSegmentedButton, CTkCanvas
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from matplotlib.pyplot import figure, margins, xlabel
-import scipy.signal as signal
+from matplotlib.pyplot import figure
+
 
 # from tkfontawesome import icon_to_image
 
@@ -27,9 +26,9 @@ def clamp(value, min_val, max_val):
 	return value
 
 
-def scale_lightness(hexStr, scale_l):
+def scale_lightness(hex_str, scale_l):
 	# Convert hexStr to rgb (tuple of 3 floats)
-	rgb = [int(hexStr[i:i + 2], 16) / 255.0 for i in range(1, 6, 2)]
+	rgb = [int(hex_str[i:i + 2], 16) / 255.0 for i in range(1, 6, 2)]
 	h, l, s = colorsys.rgb_to_hls(*rgb)
 	# manipulate h, l, s values and return as rgb
 	new_rgb = colorsys.hls_to_rgb(h, min(1, l * scale_l), s=s)
@@ -445,10 +444,9 @@ class LabelledInput(CTkEntry):
 								  width=entry_options.width,
 								  height=entry_options.height,
 								  corner_radius=entry_options.corner_radius,
-								  border_width=entry_options.border_width,
+								  border_width=0,
 								  bg_color=entry_options.bg_color,
 								  fg_color=entry_options.fg_color if entry_options.fg_color is not None else app_theme.element_background,
-								  border_color=entry_options.border_color,
 								  text_color=entry_options.text_color,
 								  placeholder_text_color=entry_options.placeholder_text_color,
 								  placeholder_text=entry_options.placeholder_text,
@@ -456,6 +454,14 @@ class LabelledInput(CTkEntry):
 								  state=entry_options.state,
 								  **entry_options.kwargs
 								  )
+		#canvas
+		self.input.update_idletasks()
+		self.input.master.update_idletasks()
+		underline_canvas = ctk.CTkCanvas(self.input, width=self.input.winfo_reqwidth()*2,
+										 height=2, highlightthickness=0)
+		underline_canvas.create_line(0, 0, self.input.winfo_reqwidth()*2, 0, fill=app_theme.primary_text,
+									 width=2, capstyle="round")
+		underline_canvas.place(x=0, y=self.input.winfo_reqheight()-2)
 		self._last_valid_value = None
 		if self._entry_options.maxvalue is not None or self._entry_options.minvalue is not None and self._entry_options.type == "number":
 			validate_ra = (self.register(self._validate_range))
@@ -489,8 +495,8 @@ class LabelledInput(CTkEntry):
 
 			self.input.bind("<KeyRelease>", update_variable)
 
-		self.label.pack(side="top", fill="both")
-		self.input.pack(side="top", fill="both")
+		self.label.pack(side="top", fill="both", pady = (5,0))
+		self.input.pack(side="top", fill="both", pady = (0,5))
 
 	# Metodi della classe per posizionare il self.container
 	def pack(self, **kwargs):
@@ -575,6 +581,9 @@ class MainApplication(ctk.CTk):
 		graph_section.rowconfigure(1, weight=1)
 
 		# Grafici
+		label_font = {'fontname': 'Arial', 'color': self.app_theme.secondary_text, 'weight': 'bold'}
+		title_font = {'fontname': 'Arial', 'color': self.app_theme.primary_text, 'weight': 'bold'}
+
 		bode1_frame = ctk.CTkFrame(graph_section, fg_color=self.app_theme.element_background, corner_radius=5)
 		bode1_frame.grid(row=0, column=0, padx=(0, 5), pady=(0, 5), sticky=ctk.NSEW)
 
@@ -582,9 +591,12 @@ class MainApplication(ctk.CTk):
 
 		self.bode1_graph = figure(dpi=72)
 		self.bode1_graph.subplots_adjust(top=0.9, bottom=0.2)
-		bode1_ax = self.bode1_graph.add_subplot(ylabel="Ampiezza")
-		bode1_ax.grid(False)
-		bode1_ax.set_title("Diagramma di Bode")
+
+		bode1_ax = self.bode1_graph.add_subplot()
+		bode1_ax.set_ylabel("Ampiezza", **label_font)
+		bode1_ax.set_xlabel("Frequenza", **label_font)
+		bode1_ax.grid(True)
+		bode1_ax.set_title("Diagramma di Bode", **title_font)
 
 		bode1_renderer = FigureCanvasTkAgg(self.bode1_graph, bode1_frame)
 		bode1_renderer.draw()
@@ -595,7 +607,9 @@ class MainApplication(ctk.CTk):
 
 		self.bode2_graph = plt.figure.Figure(dpi=72)
 		self.bode2_graph.subplots_adjust(top=0.9, bottom=0.2)
-		bode2_ax = self.bode2_graph.add_subplot(ylabel="Fase", xlabel="Frequenza")
+		bode2_ax = self.bode2_graph.add_subplot()
+		bode2_ax.set_xlabel("Frequenza", **label_font)
+		bode2_ax.set_ylabel("Fase", **label_font)
 
 		bode2_graph = FigureCanvasTkAgg(self.bode2_graph, bode2_frame)
 		bode2_graph.draw()
@@ -607,18 +621,20 @@ class MainApplication(ctk.CTk):
 		self.nyquist_graph = plt.figure.Figure(dpi=72)
 		self.nyquist_graph.subplots_adjust( left=0.18, right=0.9)
 
-		nyquist_ax = self.nyquist_graph.add_subplot(xlabel="Reale", ylabel="Immaginario")
-		nyquist_ax.set_title("Diagramma di Nyquist")
+		nyquist_ax = self.nyquist_graph.add_subplot()
+		nyquist_ax.set_xlabel("Reale", **label_font)
+		nyquist_ax.set_ylabel("Immaginario", **label_font)
+		nyquist_ax.set_title("Diagramma di Nyquist", **title_font)
 
 
 		# Placeholder nyquist transfer function plot
-		num = [1, 1]
-		den = [1, 2, 2]
-		system = signal.TransferFunction(num, den)
-		w, H = signal.freqresp(system)
-
-		nyquist_ax.plot(H.real, H.imag, 'b', label='H(s) Imaginary +')
-		nyquist_ax.plot(H.real, -H.imag, 'r', label='H(s) Imaginary -')
+		# num = [1, 1]
+		# den = [1, 2, 2]
+		# system = signal.TransferFunction(num, den)
+		# w, H = signal.freqresp(system)
+		#
+		# nyquist_ax.plot(H.real, H.imag, 'b', label='H(s) Imaginary +')
+		# nyquist_ax.plot(H.real, -H.imag, 'r', label='H(s) Imaginary -')
 
 		nyquist_graph = FigureCanvasTkAgg(self.nyquist_graph, nyquist_frame)
 		nyquist_graph.draw()
@@ -679,12 +695,16 @@ class MainApplication(ctk.CTk):
 											entry_options=LabelledInput.EntryOptions(
 												textvariable=self.fixed_test_string,
 												placeholder_text="Test (Ohm)",
+												text_color=self.app_theme.secondary_text,
 												minvalue=1,
 												maxvalue=500,
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
-												text="Test value (Ohm)"
+												text="Test value (Ohm)",
+												text_color=self.app_theme.primary_text,
+												font = ctk.CTkFont(weight="bold")
+
 											),
 											app_theme=self.app_theme
 											)
@@ -694,10 +714,13 @@ class MainApplication(ctk.CTk):
 										entry_options=LabelledInput.EntryOptions(
 											textvariable=self.fixed_frequency_string,
 											placeholder_text="Frequenza (Hz)",
+											text_color=self.app_theme.secondary_text,
 											type="number"
 										),
 										label_options=LabelledInput.LabelOptions(
 											text="Frequenza",
+											text_color=self.app_theme.primary_text,
+											font = ctk.CTkFont(weight="bold")
 										),
 										app_theme=self.app_theme
 										)
@@ -707,10 +730,13 @@ class MainApplication(ctk.CTk):
 											  entry_options=LabelledInput.EntryOptions(
 												  textvariable=self.fixed_magnitude_string,
 												  placeholder_text="Ampiezza (mV)",
+												  text_color=self.app_theme.secondary_text,
 												  type="number"
 											  ),
 											  label_options=LabelledInput.LabelOptions(
 												  text="Ampiezza",
+												  text_color=self.app_theme.primary_text,
+												  font=ctk.CTkFont(weight="bold")
 											  ),
 											  app_theme=self.app_theme
 											  )
@@ -724,27 +750,17 @@ class MainApplication(ctk.CTk):
 														   self.app_theme.light_gray_text, 0.94))
 		sweep_input_container.pack(side="top", fill="both", expand=True)
 
-		text_sweep_input = LabelledInput(sweep_input_container,
-										 entry_options=LabelledInput.EntryOptions(
-											 textvariable=self.sweep_test_string,
-											 placeholder_text="Test (Ohm)",
-											 type="number"
-										 ),
-										 label_options=LabelledInput.LabelOptions(
-											 text="Test"
-										 ),
-										 app_theme=self.app_theme
-										 )
-		text_sweep_input.pack(side="top", fill="x", padx=5, pady=5)
-
 		sweep_magnitude_input = LabelledInput(sweep_input_container,
 											  entry_options=LabelledInput.EntryOptions(
 												  textvariable=self.sweep_magnitude_string,
 												  placeholder_text="Ampiezza (mV)",
+												  text_color=self.app_theme.secondary_text,
 												  type="number"
 											  ),
 											  label_options=LabelledInput.LabelOptions(
 												  text="Ampiezza",
+												  text_color=self.app_theme.primary_text,
+												  font=ctk.CTkFont(weight="bold")
 											  ),
 											  app_theme=self.app_theme
 											  )
@@ -754,10 +770,13 @@ class MainApplication(ctk.CTk):
 											  entry_options=LabelledInput.EntryOptions(
 												  textvariable=self.frequency_start_string,
 												  placeholder_text="Frequenza (Hz)",
+												  text_color=self.app_theme.secondary_text,
 												  type="number"
 											  ),
 											  label_options=LabelledInput.LabelOptions(
 												  text="Frequenza iniziale",
+												  text_color=self.app_theme.primary_text,
+												  font=ctk.CTkFont(weight="bold")
 											  ),
 											  app_theme=self.app_theme
 											  )
@@ -767,10 +786,13 @@ class MainApplication(ctk.CTk):
 											entry_options=LabelledInput.EntryOptions(
 												textvariable=self.frequency_end_string,
 												placeholder_text="Frequenza (Hz)",
+												text_color=self.app_theme.secondary_text,
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
 												text="Frequenza finale",
+												text_color=self.app_theme.primary_text,
+												font=ctk.CTkFont(weight="bold")
 											),
 											app_theme=self.app_theme
 											)
@@ -780,10 +802,13 @@ class MainApplication(ctk.CTk):
 											entry_options=LabelledInput.EntryOptions(
 												textvariable=self.points_number,
 												placeholder_text="Numero di punti",
+												text_color=self.app_theme.secondary_text,
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
 												text="Numero di punti",
+												text_color=self.app_theme.primary_text,
+												font=ctk.CTkFont(weight="bold")
 											),
 											app_theme=self.app_theme
 											)
@@ -793,10 +818,13 @@ class MainApplication(ctk.CTk):
 											entry_options=LabelledInput.EntryOptions(
 												textvariable=self.cycles_number,
 												placeholder_text="Numero di cicli",
+												text_color=self.app_theme.secondary_text,
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
 												text="Numero di cicli",
+												text_color=self.app_theme.primary_text,
+												font=ctk.CTkFont(weight="bold")
 											),
 											app_theme=self.app_theme
 											)
@@ -919,12 +947,11 @@ class MainApplication(ctk.CTk):
 	def __init__(self, app_theme: AppTheme = AppTheme()):
 		super().__init__(fg_color=app_theme.primary_background)
 		self.app_theme = app_theme
-		self.geometry("1000x650")
+		self.geometry("1200x800")
 		self.title("")
-		self.minsize(800, 600)
+		self.minsize(1000, 600)
 
 		self.fixed_test_string = ctk.IntVar(value=1)
-		self.sweep_test_string = ctk.StringVar()
 
 		self.fixed_frequency_string = ctk.StringVar()
 		self.fixed_magnitude_string = ctk.StringVar()
@@ -953,11 +980,12 @@ class MainApplication(ctk.CTk):
 		self.__main_frame()
 		self.__bottom_frame()
 
-	def _update_graph_value(self, figure: Figure):
+	def _update_graph_value(self, figure: Figure, color):
 		axs = figure.get_axes()
 		x_values = [xval[0] for xval in self.graph_values]
 		y_values = [yval[1] for yval in self.graph_values]
-		axs[0].plot(x_values, y_values, color='blue', marker='o')
+		axs[0].set_ylim(0,y_values[-1] + y_values[-1]*0.1)
+		axs[0].plot(x_values, y_values, color=color, marker='P')
 		figure.canvas.draw()
 
 		# self.bode1_fig.canvas.flush_events()
@@ -970,8 +998,8 @@ class MainApplication(ctk.CTk):
 		self.test_ohm_input.validate()
 		self.graph_values.append((len(self.graph_values), self.fixed_test_string.get()))
 
-		self._update_graph_value(self.bode1_graph)
-		self._update_graph_value(self.bode2_graph)
+		self._update_graph_value(self.bode1_graph, self.app_theme.primary_text)
+		self._update_graph_value(self.bode2_graph, self.app_theme.secondary_text)
 
 		self._add_table_value(len(self.graph_values), self.fixed_test_string.get())
 
