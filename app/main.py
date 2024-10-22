@@ -10,7 +10,7 @@ from customtkinter import CTkFrame, CTkImage, CTkEntry, CTkFont, CTkTabview, CTk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.pyplot import figure, margins, xlabel
-
+import scipy.signal as signal
 
 # from tkfontawesome import icon_to_image
 
@@ -578,9 +578,13 @@ class MainApplication(ctk.CTk):
 		bode1_frame = ctk.CTkFrame(graph_section, fg_color=self.app_theme.element_background, corner_radius=5)
 		bode1_frame.grid(row=0, column=0, padx=(0, 5), pady=(0, 5), sticky=ctk.NSEW)
 
+		plt.pyplot.style.use('seaborn-v0_8')
+
 		self.bode1_graph = figure(dpi=72)
 		self.bode1_graph.subplots_adjust(top=0.9, bottom=0.2)
 		bode1_ax = self.bode1_graph.add_subplot(ylabel="Ampiezza")
+		bode1_ax.grid(False)
+		bode1_ax.set_title("Diagramma di Bode")
 
 		bode1_renderer = FigureCanvasTkAgg(self.bode1_graph, bode1_frame)
 		bode1_renderer.draw()
@@ -601,7 +605,20 @@ class MainApplication(ctk.CTk):
 		nyquist_frame.grid(row=0, column=1, rowspan=2, columnspan=2, padx=(0, 5), sticky=ctk.NSEW)
 
 		self.nyquist_graph = plt.figure.Figure(dpi=72)
-		self.nyquist_graph.subplots()
+		self.nyquist_graph.subplots_adjust( left=0.18, right=0.9)
+
+		nyquist_ax = self.nyquist_graph.add_subplot(xlabel="Reale", ylabel="Immaginario")
+		nyquist_ax.set_title("Diagramma di Nyquist")
+
+
+		# Placeholder nyquist transfer function plot
+		num = [1, 1]
+		den = [1, 2, 2]
+		system = signal.TransferFunction(num, den)
+		w, H = signal.freqresp(system)
+
+		nyquist_ax.plot(H.real, H.imag, 'b', label='H(s) Imaginary +')
+		nyquist_ax.plot(H.real, -H.imag, 'r', label='H(s) Imaginary -')
 
 		nyquist_graph = FigureCanvasTkAgg(self.nyquist_graph, nyquist_frame)
 		nyquist_graph.draw()
@@ -667,7 +684,7 @@ class MainApplication(ctk.CTk):
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
-												text="Test"
+												text="Test value (Ohm)"
 											),
 											app_theme=self.app_theme
 											)
@@ -918,8 +935,8 @@ class MainApplication(ctk.CTk):
 		self.points_number = ctk.StringVar()
 		self.cycles_number = ctk.StringVar()
 
-		self.graph_yvalues = []
-		self.graph_xvalues = []
+		# self.graph_yvalues = []
+		# self.graph_xvalues = []
 
 		self.graph_values = []
 
@@ -938,9 +955,8 @@ class MainApplication(ctk.CTk):
 
 	def _update_graph_value(self, figure: Figure):
 		axs = figure.get_axes()
-		x_values = [x for x,_ in self.graph_values]
-		y_values = [y for _,y in self.graph_values]
-		print(y_values)
+		x_values = [xval[0] for xval in self.graph_values]
+		y_values = [yval[1] for yval in self.graph_values]
 		axs[0].plot(x_values, y_values, color='blue', marker='o')
 		figure.canvas.draw()
 
@@ -952,16 +968,12 @@ class MainApplication(ctk.CTk):
 	# Funzioni dei pulsanti
 	def __start_button(self):
 		self.test_ohm_input.validate()
-
-		self.graph_yvalues.append(self.fixed_test_string.get())
-		self.graph_xvalues.append(len(self.graph_yvalues))
-
-		self.graph_values.append((len(self.graph_yvalues), self.fixed_frequency_string.get()))
+		self.graph_values.append((len(self.graph_values), self.fixed_test_string.get()))
 
 		self._update_graph_value(self.bode1_graph)
 		self._update_graph_value(self.bode2_graph)
 
-		self._add_table_value(len(self.graph_xvalues), self.fixed_test_string.get())
+		self._add_table_value(len(self.graph_values), self.fixed_test_string.get())
 
 	def __stop_button(self):
 		print("stop button")
