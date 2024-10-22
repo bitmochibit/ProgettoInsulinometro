@@ -680,6 +680,7 @@ class MainApplication(ctk.CTk):
 		                                entry_options=LabelledInput.EntryOptions(
 			                                textvariable=self.fixed_frequency_string,
 			                                placeholder_text="Frequenza (Hz)",
+			                                type="number"
 		                                ),
 		                                label_options=LabelledInput.LabelOptions(
 			                                text="Frequenza",
@@ -692,6 +693,7 @@ class MainApplication(ctk.CTk):
 		                                      entry_options=LabelledInput.EntryOptions(
 			                                      textvariable=self.fixed_magnitude_string,
 			                                      placeholder_text="Ampiezza (mV)",
+			                                      type="number"
 		                                      ),
 		                                      label_options=LabelledInput.LabelOptions(
 			                                      text="Ampiezza",
@@ -711,7 +713,8 @@ class MainApplication(ctk.CTk):
 		text_sweep_input = LabelledInput(sweep_input_container,
 		                                 entry_options=LabelledInput.EntryOptions(
 			                                 textvariable=self.sweep_test_string,
-			                                 placeholder_text="Test (Ohm)"
+			                                 placeholder_text="Test (Ohm)",
+			                                 type="number"
 		                                 ),
 		                                 label_options=LabelledInput.LabelOptions(
 			                                 text="Test"
@@ -724,6 +727,7 @@ class MainApplication(ctk.CTk):
 		                                      entry_options=LabelledInput.EntryOptions(
 			                                      textvariable=self.sweep_magnitude_string,
 			                                      placeholder_text="Ampiezza (mV)",
+			                                      type="number"
 		                                      ),
 		                                      label_options=LabelledInput.LabelOptions(
 			                                      text="Ampiezza",
@@ -736,6 +740,7 @@ class MainApplication(ctk.CTk):
 		                                      entry_options=LabelledInput.EntryOptions(
 			                                      textvariable=self.frequency_start_string,
 			                                      placeholder_text="Frequenza (Hz)",
+			                                      type="number"
 		                                      ),
 		                                      label_options=LabelledInput.LabelOptions(
 			                                      text="Frequenza iniziale",
@@ -748,6 +753,7 @@ class MainApplication(ctk.CTk):
 		                                    entry_options=LabelledInput.EntryOptions(
 			                                    textvariable=self.frequency_end_string,
 			                                    placeholder_text="Frequenza (Hz)",
+			                                    type="number"
 		                                    ),
 		                                    label_options=LabelledInput.LabelOptions(
 			                                    text="Frequenza finale",
@@ -760,6 +766,7 @@ class MainApplication(ctk.CTk):
 		                                    entry_options=LabelledInput.EntryOptions(
 			                                    textvariable=self.points_number,
 			                                    placeholder_text="Numero di punti",
+			                                    type="number"
 		                                    ),
 		                                    label_options=LabelledInput.LabelOptions(
 			                                    text="Numero di punti",
@@ -772,6 +779,7 @@ class MainApplication(ctk.CTk):
 		                                    entry_options=LabelledInput.EntryOptions(
 			                                    textvariable=self.cycles_number,
 			                                    placeholder_text="Numero di cicli",
+			                                    type="number"
 		                                    ),
 		                                    label_options=LabelledInput.LabelOptions(
 			                                    text="Numero di cicli",
