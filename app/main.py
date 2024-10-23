@@ -946,6 +946,7 @@ class MainApplication(ctk.CTk):
 
 	def __init__(self, app_theme: AppTheme = AppTheme()):
 		super().__init__(fg_color=app_theme.primary_background)
+		self.y_max_value = None
 		self.app_theme = app_theme
 		self.geometry("1200x800")
 		self.title("")
@@ -984,7 +985,9 @@ class MainApplication(ctk.CTk):
 		axs = figure.get_axes()
 		x_values = [xval[0] for xval in self.graph_values]
 		y_values = [yval[1] for yval in self.graph_values]
-		axs[0].set_ylim(0,y_values[-1] + y_values[-1]*0.1)
+		if self.y_max_value is None or y_values[-1] > self.y_max_value:
+			self.y_max_value = y_values[-1]
+		axs[0].set_ylim(0,self.y_max_value + self.y_max_value*0.1)
 		axs[0].plot(x_values, y_values, color=color, marker='P')
 		figure.canvas.draw()
 
