@@ -93,7 +93,7 @@ def color_str_to_hex(color: str) -> int:
 # Classe estesa per il menu personalizzato, per qualche strano motivo quello di base supporta solo il testo 🍡
 class ExtendedTitleMenu(CTkTitleMenu):
 	def __init__(self,
-	             master : ctk.CTk,
+	             master: ctk.CTk,
 	             title_bar_color=0xFFFFFF,
 	             padx: int = 10,
 	             width: int = 10,
@@ -921,6 +921,7 @@ class MainApplication(ctk.CTk):
 		self.minsize(800, 600)
 
 		self.client = Client()
+		self.devices = []
 
 		self.fixed_test_string = ctk.IntVar(value=1)
 		self.sweep_test_string = ctk.StringVar()
@@ -1015,14 +1016,17 @@ class MainApplication(ctk.CTk):
 	def __poll_devices(self):
 		while not self.client.device_queue.empty():
 			device = self.client.device_queue.get()
-			print(device)
+			if device not in self.devices:
+				self.devices.append(device)
+				print(f"Discovered device: {device}")
 
 		self.after(1000, self.__poll_devices)
 
 	def __stop_scan(self):
 		self.client.stop_scan()
-		if self._scan_thread: # Gracefully stop the scan thread
+		if self._scan_thread:  # Gracefully stop the scan thread
 			self._scan_thread.join()
+
 
 if __name__ == "__main__":
 	application = MainApplication(AppTheme())

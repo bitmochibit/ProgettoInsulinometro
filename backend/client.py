@@ -1,6 +1,6 @@
 import queue
 
-from bleak import BleakScanner
+from bleak import BleakScanner, BLEDevice, AdvertisementData
 import asyncio
 
 
@@ -9,9 +9,9 @@ class Client:
 		self.device_queue = queue.Queue()
 		self.scanning = False
 
-	async def on_discover(self, device, advertisement_data):
+	async def on_discover(self, device: BLEDevice, advertisement_data: AdvertisementData):
 		# Place discovered device in the queue for the Tkinter thread to access
-		self.device_queue.put(f"Discovered: {device}")
+		self.device_queue.put(device)
 
 	async def start_scan(self):
 		self.scanning = True
