@@ -115,8 +115,9 @@ class ExtendedTitleMenu(CTkTitleMenu):
 			         lambda e, i=btn, default_color=kwargs.get("text_color"): i.configure(text_color=default_color))
 		return btn
 
-	def add_frame(self, frame: CTkFrame):
+	def add_frame(self, frame: CTkFrame) -> CTkFrame:
 		frame.grid(row=0, column=self.num, padx=(0, self.padding))
+		return frame
 
 
 # Classe estesa per il tabview di customtkinter
@@ -506,9 +507,8 @@ class LabelledInput(CTkEntry):
 
 class ToplevelWindow(ctk.CTkToplevel):
 	def __init__(self, master: ctk.CTk, app_theme: AppTheme = AppTheme()):
-		super().__init__(master, fg_color=app_theme.primary_background)
+		super().__init__(master)
 		self.app_theme = app_theme
-		#self.title("Bluetooth devices")
 
 		# Coordinates for the top window to be centered (relative to master)
 		width = 600
@@ -555,6 +555,20 @@ class ToplevelWindow(ctk.CTkToplevel):
 		devices_list.grid(row=0, column=0, sticky="nsew")
 		devices = Listbox(height=200, width=width)
 
+		self.title("")
+		self.__title_menu_toplevel()
+	def __title_menu_toplevel(self):
+		menu = ExtendedTitleMenu(self, app_theme=self.app_theme,
+								 title_bar_color= color_str_to_hex(self.app_theme.element_background))
+		title = menu.add_cascade("Devices",
+								 font=CTkFont(family="Poppins", size=14, weight="bold"),
+								 text_color=self.app_theme.primary_text,
+								 fg_color=self.app_theme.element_background,
+								 bg_color=self.app_theme.transparent,
+								 hover_color=self.app_theme.element_background,
+								 corner_radius=0
+								 )
+
 
 
 class MainApplication(ctk.CTk):
@@ -591,6 +605,7 @@ class MainApplication(ctk.CTk):
 									  )
 
 		device_btn.grid_configure(padx=(0, 30))
+
 		signal_btn = menu.add_cascade("📶",
 									  command=self.__signal_button,
 									  text_color=self.app_theme.primary_text,
