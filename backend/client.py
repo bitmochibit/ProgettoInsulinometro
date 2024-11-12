@@ -6,7 +6,7 @@ import asyncio
 
 class Client:
 	def __init__(self):
-		self.device_queue = queue.Queue()
+		self.device_queue: queue.Queue[BLEDevice] = queue.Queue()
 		self.scanning = False
 
 	async def on_discover(self, device: BLEDevice, advertisement_data: AdvertisementData):

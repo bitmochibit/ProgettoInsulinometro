@@ -1,5 +1,4 @@
-﻿import threading
-from tkinter import ttk
+﻿from tkinter import ttk
 from typing import Optional
 
 import customtkinter as ctk
@@ -437,7 +436,6 @@ class MainApplication(ctk.CTk):
         self.minsize(800, 600)
 
         self.client = Client()
-        self.devices = []
 
         self.fixed_test_string = ctk.IntVar(value=1)
         self.sweep_test_string = ctk.StringVar()
@@ -509,11 +507,10 @@ class MainApplication(ctk.CTk):
 
     def __device_button(self):
         if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = DeviceWindow(self)
+            self.toplevel_window = DeviceWindow(self, self.client)
         elif self.toplevel_window.state() == "iconic":
             self.toplevel_window.deiconify()
             self.toplevel_window.focus()
-        self.__start_scan()
 
     def __battery_button(self):
         print("battery button")
@@ -526,27 +523,6 @@ class MainApplication(ctk.CTk):
 
     def __sweep_button(self):
         print("sweep button")
-
-    # Backend methods
-    def __start_scan(self):
-        self._scan_thread = threading.Thread(target=self.client.run_scan)
-        self._scan_thread.start()
-
-        self.__poll_devices()
-
-    def __poll_devices(self):
-        while not self.client.device_queue.empty():
-            device = self.client.device_queue.get()
-            if device not in self.devices:
-                self.devices.append(device)
-                print(f"Discovered device: {device}")
-
-        self.after(1000, self.__poll_devices)
-
-    def __stop_scan(self):
-        self.client.stop_scan()
-        if self._scan_thread:  # Gracefully stop the scan thread
-            self._scan_thread.join()
 
 
 if __name__ == "__main__":
