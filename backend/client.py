@@ -25,4 +25,10 @@ class Client:
 		self.scanning = False
 
 	def run_scan(self):
-		asyncio.run(self.start_scan())
+		try:
+			asyncio.run(self.start_scan())
+		except KeyboardInterrupt:
+			self.stop_scan()
+			print("Scan stopped")
+		except Exception as e:
+			print(f"Error: {e}")

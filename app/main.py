@@ -93,7 +93,7 @@ def color_str_to_hex(color: str) -> int:
 # Classe estesa per il menu personalizzato, per qualche strano motivo quello di base supporta solo il testo 🍡
 class ExtendedTitleMenu(CTkTitleMenu):
 	def __init__(self,
-	             master: ctk.CTk,
+	             master: ctk.CTk | Any,
 	             title_bar_color=0xFFFFFF,
 	             padx: int = 10,
 	             width: int = 10,
@@ -505,7 +505,7 @@ class LabelledInput(CTkEntry):
 		return self.input.get()
 
 
-class ToplevelWindow(ctk.CTkToplevel):
+class DeviceWindow(ctk.CTkToplevel):
 	def __init__(self, master: ctk.CTk, app_theme: AppTheme = AppTheme()):
 		super().__init__(master)
 		self.app_theme = app_theme
@@ -525,49 +525,38 @@ class ToplevelWindow(ctk.CTkToplevel):
 
 		self.geometry(f"{width}x{height}+{pos_x}+{pos_y}")
 
-		container = ctk.CTkFrame(self, fg_color=app_theme.primary_background)
-		container.pack(side="top", fill="both", expand=True)
+		self.title("")
 
-		button_container = ctk.CTkFrame(container, fg_color=app_theme.primary_background)
-		button_container.pack(side="top", fill="both", expand=True)
+		self.__setup_window()
+	def __setup_window(self):
+		container = ctk.CTkFrame(self, fg_color=self.app_theme.primary_background)
+		container.pack(side="top", fill="both", padx=2)
+
+		my_devices_container = ctk.CTkFrame(container, fg_color=self.app_theme.primary_background)
+		my_devices_container.pack(side="top", fill="x")
+
+		divider = ctk.CTkFrame(container, fg_color=self.app_theme.gray_text, height=2)
+		divider.pack(side="top", fill="x", pady=1)
+
+		discovered_devices_container = ctk.CTkFrame(container, fg_color=self.app_theme.primary_background)
+		discovered_devices_container.pack(side="top", fill="x")
+
+
+
+		button_container = ctk.CTkFrame(container, fg_color=self.app_theme.primary_background)
+		button_container.pack(side="top", fill="both")
 
 		button_container.columnconfigure(0, weight=1)
 		button_container.columnconfigure(1, weight=1)
 
-		start_scan_button = ctk.CTkButton(button_container, text="SCAN", fg_color=self.app_theme.element_background,
+		start_scan_button = ctk.CTkButton(button_container, text="Refresh", fg_color=self.app_theme.element_background,
 										  font=CTkFont(family="Poppins", size=14, weight="bold"),
 										  text_color=self.app_theme.primary_button_text, corner_radius=5,
 										  hover_color=scale_lightness(self.app_theme.element_background, 0.95),
 										  width=70)
 		start_scan_button.grid(row=0, column=0, sticky="ns")
 
-		stop_scan_button = ctk.CTkButton(button_container, text="STOP", fg_color=self.app_theme.element_background,
-										 font=CTkFont(family="Poppins", size=14, weight="bold"),
-										 text_color=self.app_theme.primary_button_text, corner_radius=5,
-										 hover_color=scale_lightness(self.app_theme.element_background, 0.95),
-										 width=70)
-		stop_scan_button.grid(row=0, column=1, sticky="ns")
 
-		list_container = ctk.CTkFrame(container, fg_color=app_theme.primary_background)
-		list_container.pack(side="bottom", fill="both", expand=True)
-
-		devices_list = Listbox(list_container)
-		devices_list.grid(row=0, column=0, sticky="nsew")
-		devices = Listbox(height=200, width=width)
-
-		self.title("")
-		self.__title_menu_toplevel()
-	def __title_menu_toplevel(self):
-		menu = ExtendedTitleMenu(self, app_theme=self.app_theme,
-								 title_bar_color= color_str_to_hex(self.app_theme.element_background))
-		title = menu.add_cascade("Devices",
-								 font=CTkFont(family="Poppins", size=14, weight="bold"),
-								 text_color=self.app_theme.primary_text,
-								 fg_color=self.app_theme.element_background,
-								 bg_color=self.app_theme.transparent,
-								 hover_color=self.app_theme.element_background,
-								 corner_radius=0
-								 )
 
 
 
@@ -1017,7 +1006,7 @@ class MainApplication(ctk.CTk):
 
 		# Creazione finestre
 
-		self.toplevel_window : Optional[ToplevelWindow] = None
+		self.toplevel_window : Optional[DeviceWindow] = None
 		self.__title_menu()
 		self.__main_frame()
 		self.__bottom_frame()
@@ -1061,11 +1050,10 @@ class MainApplication(ctk.CTk):
 
 	def __device_button(self):
 		if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-			self.toplevel_window = ToplevelWindow(self)
+			self.toplevel_window = DeviceWindow(self)
 		elif self.toplevel_window.state() == "iconic":
 			self.toplevel_window.deiconify()
-
-		self.toplevel_window.focus()
+			self.toplevel_window.focus()
 		self.__start_scan()
 
 	def __battery_button(self):
