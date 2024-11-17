@@ -196,6 +196,7 @@ class DeviceWindow(ctk.CTkToplevel):
 				if existing_device:
 					# Update the name if it is now available
 					if device.name and existing_device == "":
+						print (f"Found {existing_device} which new is {device}")
 						existing_device.name = device.name
 						# Update the displayed box with the new name
 						self.__update_device_box(existing_device)
