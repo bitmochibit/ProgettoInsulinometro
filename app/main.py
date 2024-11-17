@@ -191,11 +191,15 @@ class MainApplication(ctk.CTk):
 											entry_options=LabelledInput.EntryOptions(
 												textvariable=self.fixed_test_string,
 												placeholder_text="Test (Ohm)",
+												border_width=1,
+												border_color=self.app_theme.light_gray_text,
 												minvalue=1,
 												maxvalue=500,
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
+												text_color=self.app_theme.secondary_text,
+												font=CTkFont(family="Poppins", size=12, weight="bold"),
 												text="Test value (Ohm)"
 											),
 											app_theme=self.app_theme
@@ -206,9 +210,13 @@ class MainApplication(ctk.CTk):
 										entry_options=LabelledInput.EntryOptions(
 											textvariable=self.fixed_frequency_string,
 											placeholder_text="Frequenza (Hz)",
+											border_width=1,
+											border_color=self.app_theme.light_gray_text,
 											type="number"
 										),
 										label_options=LabelledInput.LabelOptions(
+											text_color=self.app_theme.secondary_text,
+											font=CTkFont(family="Poppins", size=12, weight="bold"),
 											text="Frequenza",
 										),
 										app_theme=self.app_theme
@@ -219,9 +227,13 @@ class MainApplication(ctk.CTk):
 											  entry_options=LabelledInput.EntryOptions(
 												  textvariable=self.fixed_magnitude_string,
 												  placeholder_text="Ampiezza (mV)",
+												  border_width=1,
+												  border_color=self.app_theme.light_gray_text,
 												  type="number"
 											  ),
 											  label_options=LabelledInput.LabelOptions(
+												  text_color=self.app_theme.secondary_text,
+												  font=CTkFont(family="Poppins", size=12, weight="bold"),
 												  text="Ampiezza",
 											  ),
 											  app_theme=self.app_theme
@@ -240,9 +252,13 @@ class MainApplication(ctk.CTk):
 										 entry_options=LabelledInput.EntryOptions(
 											 textvariable=self.sweep_test_string,
 											 placeholder_text="Test (Ohm)",
+											 border_width=1,
+											 border_color=self.app_theme.light_gray_text,
 											 type="number"
 										 ),
 										 label_options=LabelledInput.LabelOptions(
+											 text_color=self.app_theme.secondary_text,
+											 font=CTkFont(family="Poppins", size=12, weight="bold"),
 											 text="Test"
 										 ),
 										 app_theme=self.app_theme
@@ -253,9 +269,13 @@ class MainApplication(ctk.CTk):
 											  entry_options=LabelledInput.EntryOptions(
 												  textvariable=self.sweep_magnitude_string,
 												  placeholder_text="Ampiezza (mV)",
+												  border_width=1,
+												  border_color=self.app_theme.light_gray_text,
 												  type="number"
 											  ),
 											  label_options=LabelledInput.LabelOptions(
+												  text_color=self.app_theme.secondary_text,
+												  font=CTkFont(family="Poppins", size=12, weight="bold"),
 												  text="Ampiezza",
 											  ),
 											  app_theme=self.app_theme
@@ -266,9 +286,13 @@ class MainApplication(ctk.CTk):
 											  entry_options=LabelledInput.EntryOptions(
 												  textvariable=self.frequency_start_string,
 												  placeholder_text="Frequenza (Hz)",
+												  border_width=1,
+												  border_color=self.app_theme.light_gray_text,
 												  type="number"
 											  ),
 											  label_options=LabelledInput.LabelOptions(
+												  text_color=self.app_theme.secondary_text,
+												  font=CTkFont(family="Poppins", size=12, weight="bold"),
 												  text="Frequenza iniziale",
 											  ),
 											  app_theme=self.app_theme
@@ -279,9 +303,13 @@ class MainApplication(ctk.CTk):
 											entry_options=LabelledInput.EntryOptions(
 												textvariable=self.frequency_end_string,
 												placeholder_text="Frequenza (Hz)",
+												border_width=1,
+												border_color=self.app_theme.light_gray_text,
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
+												text_color=self.app_theme.secondary_text,
+												font=CTkFont(family="Poppins", size=12, weight="bold"),
 												text="Frequenza finale",
 											),
 											app_theme=self.app_theme
@@ -292,9 +320,13 @@ class MainApplication(ctk.CTk):
 											entry_options=LabelledInput.EntryOptions(
 												textvariable=self.points_number,
 												placeholder_text="Numero di punti",
+												border_width=1,
+												border_color=self.app_theme.light_gray_text,
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
+												text_color=self.app_theme.secondary_text,
+												font=CTkFont(family="Poppins", size=12, weight="bold"),
 												text="Numero di punti",
 											),
 											app_theme=self.app_theme
@@ -305,9 +337,13 @@ class MainApplication(ctk.CTk):
 											entry_options=LabelledInput.EntryOptions(
 												textvariable=self.cycles_number,
 												placeholder_text="Numero di cicli",
+												border_width=1,
+												border_color=self.app_theme.light_gray_text,
 												type="number"
 											),
 											label_options=LabelledInput.LabelOptions(
+												text_color=self.app_theme.secondary_text,
+												font = CTkFont(family="Poppins", size=12, weight="bold"),
 												text="Numero di cicli",
 											),
 											app_theme=self.app_theme
