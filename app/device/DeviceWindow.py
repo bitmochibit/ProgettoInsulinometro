@@ -84,8 +84,8 @@ class DeviceWindow(ctk.CTkToplevel):
 			return True
 
 		search_text = search_text.lower()
-		# Match search text against the device ID or name
-		return (search_text in str(device.id).lower())
+		# Match search text against the device ID or name, both converted to lowercase
+		return search_text in str(device.id).lower() or search_text in str(device.name or "").lower()
 
 	def __search(self):
 		"""
@@ -195,8 +195,7 @@ class DeviceWindow(ctk.CTkToplevel):
 
 				if existing_device:
 					# Update the name if it is now available
-					if device.name and existing_device == "":
-						print (f"Found {existing_device} which new is {device}")
+					if device.name and existing_device.name is None:
 						existing_device.name = device.name
 						# Update the displayed box with the new name
 						self.__update_device_box(existing_device)
