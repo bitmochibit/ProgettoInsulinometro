@@ -229,7 +229,7 @@
       <workItem from="1731521758798" duration="481000" />
       <workItem from="1731853090320" duration="21354000" />
       <workItem from="1731932026411" duration="2788000" />
-      <workItem from="1731950524579" duration="6176000" />
+      <workItem from="1731950524579" duration="8124000" />
     </task>
     <task id="LOCAL-00001" summary="Written the requirements to a MD file">
       <option name="closed" value="true" />
@@ -439,7 +439,15 @@
       <option name="project" value="LOCAL" />
       <updated>1731875697058</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="Progress">
+      <option name="closed" value="true" />
+      <created>1731957452995</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1731957452995</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -457,7 +465,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Written the requirements to a MD file" />
     <MESSAGE value="Renamed titles" />
     <MESSAGE value="Created preview file" />
     <MESSAGE value="Pycharm Project" />
@@ -482,7 +489,8 @@
     <MESSAGE value="created search bar class" />
     <MESSAGE value="new things in DeviceWindow.py" />
     <MESSAGE value="Fixed search thingy" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed search thingy" />
+    <MESSAGE value="Progress" />
+    <option name="LAST_COMMIT_MESSAGE" value="Progress" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

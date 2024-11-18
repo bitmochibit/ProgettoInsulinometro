@@ -514,7 +514,7 @@ class MainApplication(ctk.CTk):
 
 	def __setup_listeners(self):
 		self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.START_VALUE_READER, self.start_value_reader)
-		self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.START_VALUE_READER, self.stop_value_reader)
+		self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.STOP_VALUE_READER, self.stop_value_reader)
 		pass
 
 	def _update_graph_value(self, figure: Figure):
