@@ -35,7 +35,7 @@ def update_random_values():
     logger.debug(f"Updated values: read_x={read_x}, read_y={read_y}")
 
 
-def read_request(characteristic: BlessGATTCharacteristic, **kwargs) -> bytearray:
+def read_request(characteristic: BlessGATTCharacteristic, options: dict = None, **kwargs) -> bytearray:
     """Handles read requests by returning the current x and y values."""
     global read_x, read_y
     response = f"{read_x},{read_y}"
@@ -81,6 +81,7 @@ async def run(loop):
         | GATTCharacteristicProperties.write
         | GATTCharacteristicProperties.indicate
     )
+    # Set permissions to allow unrestricted access
     permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
     await server.add_new_characteristic(
         service_uuid, char_uuid, char_flags, None, permissions
@@ -98,7 +99,7 @@ async def run(loop):
             await asyncio.sleep(5)  # Update every 5 seconds
 
     # Start the periodic update task
-    await asyncio.create_task(update_values_periodically())
+    asyncio.create_task(update_values_periodically())
 
     if trigger.__module__ == "threading":
         trigger.wait()
