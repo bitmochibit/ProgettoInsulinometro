@@ -5,7 +5,9 @@ from re import search
 
 import customtkinter as ctk
 from customtkinter import CTkFont
+from eventpy.eventdispatcher import EventDispatcher
 
+from app.events.ApplicationMessagesEnum import ApplicationMessagesEnum
 from app.theme.AppTheme import AppTheme
 from app.utils.Color import scale_lightness
 from backend import Client
@@ -18,9 +20,12 @@ class DeviceWindow(ctk.CTkToplevel):
 			self,
 			master: ctk.CTk,
 			client: Client,
+			application_message_dispatcher: EventDispatcher,
 			app_theme: AppTheme = AppTheme()):
 		super().__init__(master, fg_color=app_theme.primary_background)
 
+		self.master = master
+		self.application_messanger = application_message_dispatcher
 		self.app_theme = app_theme
 		self.client = client
 		self.devices: [DeviceInfo] = []
@@ -192,15 +197,16 @@ class DeviceWindow(ctk.CTkToplevel):
 		if error is not None:
 			return print(f"Unable to connect to device, {error}")
 
-		print(self.client.bleak_client.services.services)
-
 		self.__update_device_box(device_info)
+		self.application_messanger.dispatch(ApplicationMessagesEnum.START_VALUE_READER)
+
 
 	def __handle_disconnection(self, device_info: DeviceInfo, error=None):
 		if error is not None:
 			return print(f"Unable to disconnect, {error}")
 
 		self.__update_device_box(device_info)
+		self.application_messanger.dispatch(ApplicationMessagesEnum.STOP_VALUE_READER)
 
 	# Backend methods
 

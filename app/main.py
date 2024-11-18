@@ -5,16 +5,19 @@ import customtkinter as ctk
 import matplotlib as plt
 import scipy.signal as signal
 from customtkinter import CTkFont
+from eventpy.eventdispatcher import EventDispatcher
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from matplotlib.pyplot import figure
 
+from app.device.DeviceWindow import DeviceWindow
+from app.events.ApplicationMessagesEnum import ApplicationMessagesEnum
 from app.templates.CustomTabView import CustomTabView
 from app.templates.CustomTitleMenu import CustomTitleMenu
 from app.templates.LabelledInput import LabelledInput
 from app.utils.Color import color_str_to_hex, scale_lightness
 from backend import Client
-from device.DeviceWindow import DeviceWindow
+
 from theme.AppTheme import AppTheme
 
 
@@ -471,6 +474,9 @@ class MainApplication(ctk.CTk):
 		self.title("")
 		self.minsize(800, 600)
 
+		self.application_message_dispatcher = EventDispatcher()
+		self.__setup_listeners()
+
 		self.client = Client()
 
 		self.fixed_test_string = ctk.IntVar(value=1)
@@ -484,6 +490,8 @@ class MainApplication(ctk.CTk):
 		self.frequency_end_string = ctk.StringVar()
 		self.points_number = ctk.StringVar()
 		self.cycles_number = ctk.StringVar()
+
+		self.updating_values = False
 
 		# self.graph_yvalues = []
 		# self.graph_xvalues = []
@@ -503,6 +511,11 @@ class MainApplication(ctk.CTk):
 		self.__title_menu()
 		self.__main_frame()
 		self.__bottom_frame()
+
+	def __setup_listeners(self):
+		self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.START_VALUE_READER, self.start_value_reader)
+		self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.START_VALUE_READER, self.stop_value_reader)
+		pass
 
 	def _update_graph_value(self, figure: Figure):
 		axs = figure.get_axes()
@@ -543,7 +556,7 @@ class MainApplication(ctk.CTk):
 
 	def __device_button(self):
 		if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-			self.toplevel_window = DeviceWindow(self, self.client)
+			self.toplevel_window = DeviceWindow(self, self.client, self.application_message_dispatcher, self.app_theme)
 		elif self.toplevel_window.state() == "iconic":
 			self.toplevel_window.deiconify()
 			self.toplevel_window.focus()
@@ -559,6 +572,34 @@ class MainApplication(ctk.CTk):
 
 	def __sweep_button(self):
 		print("sweep button")
+
+	def start_value_reader(self):
+		print("Starting value reader")
+		self.updating_values = True
+		self.__read_value_from_device()
+		pass
+
+	def stop_value_reader(self):
+		print("Stopping value reader")
+		self.updating_values = False
+		pass
+
+	def __read_value_from_device(self):
+		# Read value from device
+		try:
+			self.client.read_data("51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B", self.__on_data_read)
+		except Exception as e:
+			print(e)
+			self.updating_values = False
+
+		# Schedule the read value function every 1 second
+		if self.updating_values:
+			self.after(1000, self.__read_value_from_device)
+
+	def __on_data_read(self, data, error):
+		print(data)
+		pass
+
 
 
 if __name__ == "__main__":
