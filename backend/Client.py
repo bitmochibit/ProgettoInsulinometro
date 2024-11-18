@@ -1,7 +1,9 @@
 import asyncio
 import threading
+from typing import Callable, Any
 
 from bleak import BleakClient, BleakError
+from bleak.backends import device
 
 from backend.device.DeviceInfo import DeviceInfo
 from backend.device.Scanner import Scanner
@@ -9,8 +11,8 @@ from backend.device.Scanner import Scanner
 
 class Client:
     def __init__(self):
-        self.connected_device = None
-        self.bleak_client = None
+        self.last_connected_device: DeviceInfo = None
+        self.bleak_client: BleakClient = None
         self.scanner = Scanner()
         self.is_connected = False
         self.loop = None
@@ -33,10 +35,10 @@ class Client:
 
     async def __aenter__(self):
         """Async context manager entry: automatically starts the loop and connects."""
-        if not self.connected_device:
+        if not self.last_connected_device:
             raise ValueError("Device not specified. Set `connected_device` before entering context.")
         self._start_event_loop()
-        await self._connect(self.connected_device)
+        await self._connect(self.last_connected_device)
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
@@ -44,46 +46,52 @@ class Client:
         await self._disconnect()
         self._stop_event_loop()
 
-    def connect(self, device: DeviceInfo, callback=None):
+    def connect(self, device: DeviceInfo, callback : Callable[[DeviceInfo, Any], None] = None):
         """Non-blocking connect method."""
         if not self.loop:
             self._start_event_loop()
-        self.connected_device = device
+        self.last_connected_device = device
         asyncio.run_coroutine_threadsafe(self._connect(device, callback), self.loop)
 
-    async def _connect(self, device: DeviceInfo, callback=None):
+    async def _connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
         """Async method to establish a connection to a BLE device."""
-        self.connected_device = device
+        if self.is_connected:
+            await self._disconnect()
+        self.last_connected_device = device
         self.bleak_client = BleakClient(device.id)
 
         try:
             await self.bleak_client.connect()
             if self.bleak_client.is_connected:
                 self.is_connected = True
-                print(f"Connected to {device.name}")
+                print(f"Connected to {device.id} (Named {device.name})")
                 if callback:
-                    callback(True)  # Pass success to callback
+                    callback(device, None)  # Pass success to callback
             else:
                 raise BleakError("Failed to connect to device")
         except BleakError as e:
             print(f"An error occurred: {e}")
             if callback:
-                callback(False)  # Pass failure to callback
+                callback(device, e)  # Pass failure to callback
             await self._disconnect()
 
-    def disconnect(self, callback=None):
+    def disconnect(self, callback: Callable[[DeviceInfo, Any], None] = None):
         """Non-blocking disconnect method."""
-        future = asyncio.run_coroutine_threadsafe(self._disconnect(callback), self.loop)
-        future.add_done_callback(lambda f: self._stop_event_loop())
+        asyncio.run_coroutine_threadsafe(self._disconnect(callback), self.loop)
 
-    async def _disconnect(self, callback=None):
+    async def _disconnect(self, callback: Callable[[DeviceInfo, Any], None] = None):
         """Async method to disconnect from the BLE device."""
         if self.bleak_client and self.is_connected:
-            await self.bleak_client.disconnect()
-            self.is_connected = False
-            print("Disconnected from device")
-            if callback:
-                callback(True)  # Pass success to callback
+            try:
+                await self.bleak_client.disconnect()
+                self.is_connected = False
+                print(f"Disconnected from device {self.last_connected_device.id} (Named {self.last_connected_device.name})")
+                if callback:
+                    callback(self.last_connected_device, None)  # Pass success to callback
+            except BleakError as e:
+                print(f"An error occurred: {e}")
+                if callback:
+                    callback(self.last_connected_device, e)
 
     def read_data(self, characteristic_uuid: str, callback):
         """Non-blocking read data method."""

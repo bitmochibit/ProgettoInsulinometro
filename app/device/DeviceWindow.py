@@ -7,6 +7,7 @@ import customtkinter as ctk
 from customtkinter import CTkFont
 
 from app.theme.AppTheme import AppTheme
+from app.utils.Color import scale_lightness
 from backend import Client
 from backend.device.DeviceInfo import DeviceInfo
 from app.templates.SearchBar import SearchBar
@@ -133,18 +134,36 @@ class DeviceWindow(ctk.CTkToplevel):
 			device_box,
 			fg_color=self.app_theme.element_background
 		)
+
 		button_container.pack(side="right", fill="both", pady=2, padx=5)
 		button_container.rowconfigure(0, weight=1)
 		button_container.columnconfigure(0, weight=1)
 
-		add_device_button = ctk.CTkButton(button_container,
-										  text="Connetti",
-										  text_color=self.app_theme.primary_button_text,
-										  fg_color=self.app_theme.primary_button,
-										  width=200,
-										  command=lambda: self.connect_device(device_info)
-										  )
-		add_device_button.grid(row=0, column=0)
+		if self.client.last_connected_device == device_info and self.client.is_connected:
+			disconnect_device_button = ctk.CTkButton(button_container,
+													 text="Disconnetti",
+													 fg_color=self.app_theme.danger_button,
+													 font=CTkFont(family="Poppins", size=14, weight="bold"),
+													 text_color=self.app_theme.danger_button_text,
+													 hover_color=scale_lightness(self.app_theme.danger_button, 0.95),
+													 width=200,
+													 corner_radius=5,
+													 command=lambda: self.client.disconnect(self.__handle_disconnection)
+													 )
+			disconnect_device_button.grid(row=0, column=0)
+		else:
+			connect_device_button = ctk.CTkButton(button_container,
+												  text="Connetti",
+												  text_color=self.app_theme.primary_button_text,
+												  fg_color=self.app_theme.primary_button,
+												  font=CTkFont(family="Poppins", size=14, weight="bold"),
+												  hover_color=scale_lightness(self.app_theme.primary_button, 0.95),
+												  width=200,
+												  corner_radius=5,
+												  command=lambda: self.client.connect(device_info,
+																					  self.__handle_connection)
+												  )
+			connect_device_button.grid(row=0, column=0)
 
 		self.device_map[device_info.id] = device_box
 		pass
@@ -156,9 +175,6 @@ class DeviceWindow(ctk.CTkToplevel):
 		self.__remove_device_box(device_info)
 		self.__create_device_box(device_info)
 
-
-
-
 	def __show_device_box(self, device_info: DeviceInfo):
 		self.device_map[device_info.id].pack(side="top", fill="x", pady=5)
 
@@ -167,16 +183,26 @@ class DeviceWindow(ctk.CTkToplevel):
 			self.device_map[device_info.id].destroy()
 			del self.device_map[device_info.id]
 
-
 	def __hide_device_box(self, device_info: DeviceInfo):
 		if device_info.id in self.device_map:
 			self.device_map[device_info.id].pack_forget()
 
+	# passare errore di connect in modo tale da mandarlo al log
+	def __handle_connection(self, device_info: DeviceInfo, error=None):
+		if error is not None:
+			return print(f"Unable to connect to device, {error}")
 
+		print(self.client.bleak_client.services.services)
+
+		self.__update_device_box(device_info)
+
+	def __handle_disconnection(self, device_info: DeviceInfo, error=None):
+		if error is not None:
+			return print(f"Unable to disconnect, {error}")
+
+		self.__update_device_box(device_info)
 
 	# Backend methods
-	def connect_device(self, device_info: DeviceInfo):
-		self.client.connect(device_info)
 
 	def __start_scan(self):
 		self._scan_thread = threading.Thread(target=self.client.scanner.run_scan)
