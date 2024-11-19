@@ -598,7 +598,7 @@ class MainApplication(ctk.CTk):
 			self.after(1000, self.__read_value_from_device)
 
 	def __on_data_read(self, data, error):
-		# Data is a string like "x,y", where x and y are the values to plot
+		# Data is a string like "x,y", where x and y are the values to plot (for testing)
 		#Convert bytearray (data) to str
 		string_data = data.decode("utf-8")
 
@@ -606,7 +606,7 @@ class MainApplication(ctk.CTk):
 		x = split_data[0]
 		y = split_data[1]
 
-		self.add_graph_value(x, y)
+		self.add_graph_value(len(self.graph_values), y)
 
 		pass
 
