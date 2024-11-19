@@ -4,14 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f3ff4a2b-283d-483e-be92-97b15876e3b8" name="Changes" comment="Fixed search thingy">
-      <change afterPath="$PROJECT_DIR$/app/events/ApplicationMessagesEnum.py" afterDir="false" />
+    <list default="true" id="f3ff4a2b-283d-483e-be92-97b15876e3b8" name="Changes" comment="Added message system to make window comunicate and other stuff I can't remember + fixed the server">
+      <change beforePath="$PROJECT_DIR$/.idea/ProgettoInsulinometro.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/ProgettoInsulinometro.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/device/DeviceWindow.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/device/DeviceWindow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/app/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/Client.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/Client.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/ServerTest.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/ServerTest.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,12 +48,12 @@
     &quot;assignee&quot;: &quot;bitmochibit&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/bitmochibit/ProgettoInsulinometro.git&quot;,
-    &quot;accountId&quot;: &quot;5b117b2a-3c5a-4019-8c08-36a8fcbaad57&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/bitmochibit/ProgettoInsulinometro.git",
+    "accountId": "23b27fbf-ad8b-4391-82ef-34d2d50d9a29"
   }
-}</component>
+}]]></component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$USER_HOME$/AppData/Local/Programs/Python/Python312/Lib/site-packages/customtkinter/windows/widgets/ctk_button.py" root0="SKIP_INSPECTION" />
   </component>
@@ -162,8 +158,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-PY-243.21565.199" />
-        <option value="bundled-python-sdk-cab1f2013843-4ae2d6a61b08-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.21565.199" />
+        <option value="bundled-js-predefined-d6986cc7102b-7c0b70fcd90d-JavaScript-PY-242.21829.153" />
+        <option value="bundled-python-sdk-464836ebc622-b74155a9e76b-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-242.21829.153" />
       </set>
     </attachedChunks>
   </component>
@@ -230,6 +226,7 @@
       <workItem from="1731853090320" duration="21354000" />
       <workItem from="1731932026411" duration="2788000" />
       <workItem from="1731950524579" duration="6176000" />
+      <workItem from="1732011207551" duration="673000" />
     </task>
     <task id="LOCAL-00001" summary="Written the requirements to a MD file">
       <option name="closed" value="true" />
@@ -439,7 +436,15 @@
       <option name="project" value="LOCAL" />
       <updated>1731875697058</updated>
     </task>
-    <option name="localTasksCounter" value="27" />
+    <task id="LOCAL-00027" summary="Added message system to make window comunicate and other stuff I can't remember + fixed the server">
+      <option name="closed" value="true" />
+      <created>1731960390805</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1731960390805</updated>
+    </task>
+    <option name="localTasksCounter" value="28" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -457,7 +462,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Written the requirements to a MD file" />
     <MESSAGE value="Renamed titles" />
     <MESSAGE value="Created preview file" />
     <MESSAGE value="Pycharm Project" />
@@ -482,7 +486,8 @@
     <MESSAGE value="created search bar class" />
     <MESSAGE value="new things in DeviceWindow.py" />
     <MESSAGE value="Fixed search thingy" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed search thingy" />
+    <MESSAGE value="Added message system to make window comunicate and other stuff I can't remember + fixed the server" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added message system to make window comunicate and other stuff I can't remember + fixed the server" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -497,12 +502,12 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/index_js$Start_ServerTest.coverage" NAME="Start ServerTest Coverage Results" MODIFIED="1731958751347" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
-    <SUITE FILE_PATH="coverage/index_js$Start_App.coverage" NAME="Start App Coverage Results" MODIFIED="1731959660023" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/index_js$Start_App.coverage" NAME="Start App Coverage Results" MODIFIED="1732011865220" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/ProgettoInsulinometro$SearchBar.coverage" NAME="SearchBar Coverage Results" MODIFIED="1731859714763" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app/templates" />
     <SUITE FILE_PATH="coverage/ProgettoInsulinometro$DeviceWindow.coverage" NAME="DeviceWindow Coverage Results" MODIFIED="1731857268966" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app/device" />
     <SUITE FILE_PATH="coverage/index_js$ServerTest.coverage" NAME="ServerTest Coverage Results" MODIFIED="1731776506740" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/backend" />
-    <SUITE FILE_PATH="coverage/index_js$server.coverage" NAME="server Coverage Results" MODIFIED="1731775753100" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/venv/Lib/site-packages/bless/backends/winrt" />
     <SUITE FILE_PATH="coverage/ProgettoInsulinometro$Start_App.coverage" NAME="Start App Coverage Results" MODIFIED="1731956385174" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/index_js$server.coverage" NAME="server Coverage Results" MODIFIED="1731775753100" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/venv/Lib/site-packages/bless/backends/winrt" />
     <SUITE FILE_PATH="coverage/ProgettoInsulinometro$Start_ServerTest.coverage" NAME="Start ServerTest Coverage Results" MODIFIED="1731955397906" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/ProgettoInsulinometro$ctk_tabview.coverage" NAME="ctk_tabview Coverage Results" MODIFIED="1729266918464" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/AppData/Local/Programs/Python/Python312/Lib/site-packages/customtkinter/windows/widgets" />
     <SUITE FILE_PATH="coverage/ProgettoInsulinometro$main.coverage" NAME="main Coverage Results" MODIFIED="1731859702479" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/app" />

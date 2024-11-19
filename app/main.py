@@ -529,15 +529,16 @@ class MainApplication(ctk.CTk):
 	def _add_table_value(self, x, y):
 		self.data_table.insert('', -1, values=(x, y))
 
+	def add_graph_value(self, x, y):
+		self.graph_values.append((x, y))
+		self._update_graph_value(self.bode1_graph)
+		self._update_graph_value(self.bode2_graph)
+		self._add_table_value(x, y)
+
 	# Funzioni dei pulsanti
 	def __start_button(self):
 		self.test_ohm_input.validate()
-		self.graph_values.append((len(self.graph_values), self.fixed_test_string.get()))
-
-		self._update_graph_value(self.bode1_graph)
-		self._update_graph_value(self.bode2_graph)
-
-		self._add_table_value(len(self.graph_values), self.fixed_test_string.get())
+		self.add_graph_value(len(self.graph_values), self.fixed_test_string.get())
 
 	def __stop_button(self):
 		pass
@@ -597,7 +598,13 @@ class MainApplication(ctk.CTk):
 			self.after(1000, self.__read_value_from_device)
 
 	def __on_data_read(self, data, error):
-		print(data)
+		# Data is a string like "x,y", where x and y are the values to plot
+		split_data = data.split(",")
+		x = split_data[0]
+		y = split_data[1]
+
+		self.add_graph_value(x, y)
+
 		pass
 
 
