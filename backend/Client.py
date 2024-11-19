@@ -104,10 +104,15 @@ class Client:
 			print("Device is not connected")
 			return
 		try:
-			data = await self.bleak_client.read_gatt_char(characteristic_uuid)
-			print(f"Data read from device: {data}")
-			if callback:
-				callback(data, None)
+			services = await self.bleak_client.get_services()
+			# Get service with UUID "A07498CA-AD5B-474E-940D-16F1FBE7E8CD"
+			for service in services:
+				if service.uuid == "A07498CA-AD5B-474E-940D-16F1FBE7E8CD":
+					characteristic = service.get_characteristic(characteristic_uuid)
+					data = self.bleak_client.read_gatt_char(characteristic)
+					print(f"Data read from device: {data}")
+					if callback:
+						callback(data, None)
 		except BleakError as e:
 			print(f"Failed to read data: {e}")
 			if callback:
