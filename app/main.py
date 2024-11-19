@@ -603,10 +603,16 @@ class MainApplication(ctk.CTk):
 		string_data = data.decode("utf-8")
 
 		split_data = string_data.split(",")
-		x = split_data[0]
 		y = split_data[1]
 
-		self.add_graph_value(len(self.graph_values), y)
+		# Parse y as a value, 0 if it's not possible
+
+		try:
+			y_value = float(y)
+		except Exception as e:
+			y_value = 0.0
+
+		self.add_graph_value(len(self.graph_values), y_value)
 
 		pass
 
