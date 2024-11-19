@@ -4,14 +4,18 @@ import asyncio
 import threading
 import random
 
-from typing import Any, Union
+from typing import Any, Union, cast
 
+from bleak import normalize_uuid_str
 from bless import (  # type: ignore
 	BlessServer,
 	BlessGATTCharacteristic,
 	GATTCharacteristicProperties,
 	GATTAttributePermissions,
 )
+from bless.backends.descriptor import BlessGATTDescriptor
+from bless.backends.winrt.characteristic import BlessGATTCharacteristicWinRT
+from bless.backends.winrt.service import BlessGATTServiceWinRT
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -53,13 +57,14 @@ def write_request(characteristic: BlessGATTCharacteristic, value: Any, **kwargs)
 		trigger.set()
 
 
-class BlessServerFix(BlessServer):
+class WindowsGATTServer(BlessServer):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 	# Implement abstract method add_new_descriptor to avoid error
-	def add_new_descriptor(self, service_uuid: str, characteristic_uuid: str, descriptor_uuid: str,
+	async def add_new_descriptor(self, service_uuid: str, characteristic_uuid: str, descriptor_uuid: str,
 	                       descriptor_flags: int, value: Any, permissions: int):
+		print("Supported only on BlueZ backend") # This method is not supported on Windows backend
 		pass
 
 
@@ -79,7 +84,7 @@ async def run(loop):
 
 	# Instantiate the server
 	server_name = "Insulinometro"
-	server = BlessServerFix(name=server_name, loop=loop)
+	server = WindowsGATTServer(name=server_name, loop=loop)
 	server.read_request_func = read_request
 	server.write_request_func = write_request
 
