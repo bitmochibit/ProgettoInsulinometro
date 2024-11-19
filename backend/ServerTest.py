@@ -101,7 +101,7 @@ async def run(loop):
 	)
 
 	# Read X,Y Characteristic
-	char_uuid = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B"
+	char_uuid = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B".lower()
 	char_flags = (
 			GATTCharacteristicProperties.read
 			| GATTCharacteristicProperties.write

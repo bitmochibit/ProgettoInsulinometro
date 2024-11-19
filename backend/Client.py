@@ -9,6 +9,11 @@ from backend.device.DeviceInfo import DeviceInfo
 from backend.device.Scanner import Scanner
 
 
+def notification_handler(sender, data):
+	output = list(data)
+	print("GATHERED DATA FROM DEVICE", output)
+
+
 class Client:
 	def __init__(self):
 		self.last_connected_device: DeviceInfo = None
@@ -93,9 +98,6 @@ class Client:
 				print(f"An error occurred: {e}")
 				if callback:
 					callback(self.last_connected_device, e)
-	def notification_handler(self, sender, data):
-		output = list(data)
-		print(output)
 
 	def read_data(self, characteristic_uuid: str, callback: Callable[[Any, Any], None] = None):
 		"""Non-blocking read data method."""
@@ -110,20 +112,22 @@ class Client:
 			services = await self.bleak_client.get_services()
 			# Get service with UUID "A07498CA-AD5B-474E-940D-16F1FBE7E8CD"
 			for service in services:
-				print(service.uuid)
 				if service.uuid == "A07498CA-AD5B-474E-940D-16F1FBE7E8CD".lower():
-					characteristic = service.get_characteristic(characteristic_uuid)
-					await self.bleak_client.start_notify(characteristic_uuid, self.notification_handler)
-					data = await self.bleak_client.read_gatt_char(characteristic)
-					print(f"Data read from device: {data}")
-					if callback:
-						callback(data, None)
-					return
+					for characteristic in service.characteristics:
+						if characteristic.uuid == characteristic_uuid:
+							await self.bleak_client.start_notify(characteristic, notification_handler)
+							data = await self.bleak_client.read_gatt_char(characteristic)
+							print(f"Data read from device: {data}")
+							if callback:
+								callback(data, None)
+							return
 		except BleakError as e:
 			print(f"Failed to read data: {e}")
 			if callback:
 				callback(None, e)
-
+			return
+		if callback:
+			callback(None, None)
 	def write_data(self, characteristic_uuid: str, data: bytes, callback=None):
 		"""Non-blocking write data method."""
 		asyncio.run_coroutine_threadsafe(self._write_data(characteristic_uuid, data, callback), self.loop)
