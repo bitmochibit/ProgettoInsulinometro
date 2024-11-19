@@ -110,7 +110,7 @@ async def run(loop):
 	# Set permissions to allow unrestricted access
 	permissions = GATTAttributePermissions.readable | GATTAttributePermissions.writeable
 	await server.add_new_characteristic(
-		service_uuid, char_uuid, char_flags, None, permissions
+		service_uuid, char_uuid, char_flags, bytearray("TEST", 'utf-8'), permissions
 	)
 
 	logger.debug(server.get_characteristic(char_uuid))
