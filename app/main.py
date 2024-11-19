@@ -599,7 +599,10 @@ class MainApplication(ctk.CTk):
 
 	def __on_data_read(self, data, error):
 		# Data is a string like "x,y", where x and y are the values to plot
-		split_data = data.split(",")
+		#Convert bytearray (data) to str
+		string_data = data.decode("utf-8")
+
+		split_data = string_data.split(",")
 		x = split_data[0]
 		y = split_data[1]
 
