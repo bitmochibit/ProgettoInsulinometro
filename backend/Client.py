@@ -8,12 +8,6 @@ from bleak.backends import device
 from backend.device.DeviceInfo import DeviceInfo
 from backend.device.Scanner import Scanner
 
-
-def notification_handler(sender, data):
-	output = list(data)
-	print("GATHERED DATA FROM DEVICE", output)
-
-
 class Client:
 	def __init__(self):
 		self.last_connected_device: DeviceInfo = None
@@ -116,8 +110,7 @@ class Client:
 					print("List of characteristics", service.characteristics)
 					for characteristic in service.characteristics:
 						if characteristic.uuid == characteristic_uuid:
-							print(f"Attempting to read from {characteristic.uuid}...")
-							await self.bleak_client.start_notify(characteristic, notification_handler)
+							print(f"Attempting to read from {characteristic.uuid}, handle: {characteristic.handle} ")
 							data = await self.bleak_client.read_gatt_char(characteristic.handle)
 							print(f"Data read from device: {data}")
 							if callback:
