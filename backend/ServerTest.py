@@ -85,8 +85,8 @@ async def run(loop):
 	# Instantiate the server
 	server_name = "Insulinometro"
 	server = WindowsGATTServer(name=server_name, loop=loop)
-	server.read_request_func = read_request
-	server.write_request_func = write_request
+	# server.read_request_func = read_request
+	# server.write_request_func = write_request
 
 	# Add Service
 	service_uuid = "A07498CA-AD5B-474E-940D-16F1FBE7E8CD"

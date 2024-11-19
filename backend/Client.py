@@ -113,6 +113,7 @@ class Client:
 			# Get service with UUID "A07498CA-AD5B-474E-940D-16F1FBE7E8CD"
 			for service in services:
 				if service.uuid == "A07498CA-AD5B-474E-940D-16F1FBE7E8CD".lower():
+					print("List of characteristics", service.characteristics)
 					for characteristic in service.characteristics:
 						if characteristic.uuid == characteristic_uuid:
 							print(f"Attempting to read from {characteristic.uuid}...")
