@@ -42,10 +42,8 @@ def update_random_values():
 
 def read_request(characteristic: BlessGATTCharacteristic, options: dict = None, **kwargs) -> bytearray:
 	"""Handles read requests by returning the current x and y values."""
-	global read_x, read_y
-	response = f"{read_x},{read_y}"
-	logger.debug(f"Read request: returning {response}")
-	return bytearray(response, 'utf-8')
+	logger.debug(f"Reading {characteristic.value}")
+	return characteristic.value
 
 
 def write_request(characteristic: BlessGATTCharacteristic, value: Any, **kwargs):
@@ -85,20 +83,12 @@ async def run(loop):
 	# Instantiate the server
 	server_name = "Insulinometro"
 	server = WindowsGATTServer(name=server_name, loop=loop)
-	# server.read_request_func = read_request
-	# server.write_request_func = write_request
+	server.read_request_func = read_request
+	server.write_request_func = write_request
 
 	# Add Service
 	service_uuid = "A07498CA-AD5B-474E-940D-16F1FBE7E8CD"
 	await server.add_new_service(service_uuid)
-
-	# Device Name Characteristic
-	device_name_uuid = get_characteristic_uuid_from_code(0x2A00)  # Standard GAP Device Name UUID
-	char_flags = GATTCharacteristicProperties.read
-	permissions = GATTAttributePermissions.readable
-	await server.add_new_characteristic(
-		service_uuid, device_name_uuid, char_flags, bytearray(server_name, 'utf-8'), permissions
-	)
 
 	# Read X,Y Characteristic
 	char_uuid = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B".lower()

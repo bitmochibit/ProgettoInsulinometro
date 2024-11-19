@@ -103,7 +103,7 @@ class Client:
 			print("Device is not connected")
 			return
 		try:
-			services = await self.bleak_client.get_services()
+			services = self.bleak_client.services
 			# Get service with UUID "A07498CA-AD5B-474E-940D-16F1FBE7E8CD"
 			for service in services:
 				if service.uuid == "A07498CA-AD5B-474E-940D-16F1FBE7E8CD".lower():
