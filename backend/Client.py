@@ -118,7 +118,7 @@ class Client:
 						if characteristic.uuid == characteristic_uuid:
 							print(f"Attempting to read from {characteristic.uuid}...")
 							await self.bleak_client.start_notify(characteristic, notification_handler)
-							data = await self.bleak_client.read_gatt_char(characteristic.uuid)
+							data = await self.bleak_client.read_gatt_char(characteristic.handle)
 							print(f"Data read from device: {data}")
 							if callback:
 								callback(data, None)
