@@ -588,7 +588,7 @@ class MainApplication(ctk.CTk):
 	def __read_value_from_device(self):
 		# Read value from device
 		try:
-			self.client.read_data("51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B", self.__on_data_read)
+			self.client.read_data("51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B".lower(), self.__on_data_read)
 		except Exception as e:
 			print(e)
 			self.updating_values = False
