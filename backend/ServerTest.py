@@ -74,7 +74,16 @@ async def run(loop):
     service_uuid = "A07498CA-AD5B-474E-940D-16F1FBE7E8CD"
     await server.add_new_service(service_uuid)
 
-    # Add a Characteristic to the service
+    # Device Name Characteristic
+    device_name_uuid = "00002A00-0000-1000-8000-00805F9B34FB"  # Standard GAP Device Name UUID
+    char_flags = GATTCharacteristicProperties.read
+    permissions = GATTAttributePermissions.readable
+    await server.add_new_characteristic(
+        service_uuid, device_name_uuid, char_flags, bytearray("Insulinometro", 'utf-8'), permissions
+    )
+
+
+    # Read X,Y Characteristic
     char_uuid = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B"
     char_flags = (
         GATTCharacteristicProperties.read
