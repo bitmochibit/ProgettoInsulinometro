@@ -13,9 +13,6 @@ from bless import (  # type: ignore
 	GATTCharacteristicProperties,
 	GATTAttributePermissions,
 )
-from bless.backends.descriptor import BlessGATTDescriptor
-from bless.backends.winrt.characteristic import BlessGATTCharacteristicWinRT
-from bless.backends.winrt.service import BlessGATTServiceWinRT
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(name=__name__)
@@ -42,8 +39,9 @@ def update_random_values():
 
 def read_request(characteristic: BlessGATTCharacteristic, options: dict = None, **kwargs) -> bytearray:
 	"""Handles read requests by returning the current x and y values."""
+	global read_x, read_y
 	logger.debug(f"Reading {characteristic.value}")
-	return characteristic.value
+	return bytearray(f"{read_x},{read_y}", 'utf-8')
 
 
 def write_request(characteristic: BlessGATTCharacteristic, value: Any, **kwargs):
