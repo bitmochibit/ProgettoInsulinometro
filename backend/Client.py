@@ -115,7 +115,6 @@ class Client:
 					characteristic = service.get_characteristic(characteristic_uuid)
 					await self.bleak_client.start_notify(characteristic_uuid, self.notification_handler)
 					data = await self.bleak_client.read_gatt_char(characteristic)
-					await self.bleak_client.stop_notify(characteristic_uuid)
 					print(f"Data read from device: {data}")
 					if callback:
 						callback(data, None)
