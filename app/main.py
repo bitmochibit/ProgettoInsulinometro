@@ -511,8 +511,8 @@ class MainApplication(ctk.CTk):
 		self.__bottom_frame()
 
 	def __setup_listeners(self):
-		self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.START_VALUE_READER, self.start_value_reader)
-		self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.STOP_VALUE_READER, self.stop_value_reader)
+		#self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.START_VALUE_READER, self.start_value_reader)
+		#self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.STOP_VALUE_READER, self.stop_value_reader)
 		pass
 
 	def _update_graph_value(self, figure: Figure):
@@ -535,11 +535,10 @@ class MainApplication(ctk.CTk):
 
 	# Funzioni dei pulsanti
 	def __start_button(self):
-		self.test_ohm_input.validate()
-		self.add_graph_value(len(self.graph_values), self.fixed_test_string.get())
+		self.start_value_reader()
 
 	def __stop_button(self):
-		pass
+		self.stop_value_reader()
 
 	def __marker_button(self):
 		print("marker button")
