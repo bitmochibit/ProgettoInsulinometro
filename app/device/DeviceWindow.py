@@ -1,7 +1,5 @@
-import asyncio
 import threading
 from queue import Empty
-from re import search
 
 import customtkinter as ctk
 from customtkinter import CTkFont
@@ -11,7 +9,9 @@ from app.events.ApplicationMessagesEnum import ApplicationMessagesEnum
 from app.theme.AppTheme import AppTheme
 from app.utils.Color import scale_lightness
 from backend import Client
-from backend.device.DeviceInfo import DeviceInfo
+from backend.client.ClientHolder import ClientHolder
+from backend.device.info.BLEDeviceInfo import BLEDeviceInfo
+from backend.device.info.DeviceInfo import DeviceInfo
 from app.templates.SearchBar import SearchBar
 
 
@@ -19,7 +19,6 @@ class DeviceWindow(ctk.CTkToplevel):
 	def __init__(
 			self,
 			master: ctk.CTk,
-			client: Client,
 			application_message_dispatcher: EventDispatcher,
 			app_theme: AppTheme = AppTheme()):
 		super().__init__(master, fg_color=app_theme.primary_background)
@@ -27,8 +26,8 @@ class DeviceWindow(ctk.CTkToplevel):
 		self.master = master
 		self.application_messanger = application_message_dispatcher
 		self.app_theme = app_theme
-		self.client = client
-		self.devices: [DeviceInfo] = []
+
+		self.devices: [BLEDeviceInfo] = []
 
 		self.searched_var = ctk.StringVar()
 
@@ -211,38 +210,35 @@ class DeviceWindow(ctk.CTkToplevel):
 	# Backend methods
 
 	def __start_scan(self):
-		self._scan_thread = threading.Thread(target=self.client.scanner.run_scan)
+		self._scan_thread = threading.Thread(target=ClientHolder().ble_client.scanner.run_scan)
 		self._scan_thread.start()
 
-		self.__poll_devices()
+		self.__update_devices()
 
-	def __poll_devices(self):
-		try:
-			while not self.client.scanner.device_queue.empty():
-				device = self.client.scanner.device_queue.get_nowait()
-				searched_text = self.searched_var.get() or ""
+	def __update_devices(self):
+		# Inside each of client, there's a scanner which contains the list of devices (and eventually they get updated)
+		ble_scanner = ClientHolder().ble_client.scanner
 
-				# Check if the device already exists in the map
-				existing_device = next((d for d in self.devices if d.id == device.id), None)
+		for scanned_device in ble_scanner.device_list:
+			# Check if the id is already in the list of devices (if it is, update the device info if the current update_time is greater than the one stored), otherwise add it
+			if scanned_device in self.devices:
+				if scanned_device.update_time > self.devices[scanned_device.id].update_time:
+					self.devices[scanned_device.id] = scanned_device
+					self.__update_device_box(scanned_device)
+			else:
+				self.devices.append(scanned_device)
+				self.__create_device_box(scanned_device)
 
-				if existing_device:
-					# Update the name if it is now available
-					if device.name and existing_device.name is None:
-						existing_device.name = device.name
-						# Update the displayed box with the new name
-						self.__update_device_box(existing_device)
-				else:
-					# Add the device only if it matches the search
-					if self.__search_match(device, searched_text):
-						self.devices.append(device)
-						self.__create_device_box(device)
-		except Empty:
-			pass
+		# Remove devices that are no longer in the list
+		for device in self.devices:
+			if device not in ble_scanner.device_list:
+				self.devices.remove(device)
+				self.__remove_device_box(device)
 
 		# Schedule the next poll
-		self.after(1000, self.__poll_devices)
+		self.after(5000, self.__update_devices)
 
 	def __stop_scan(self):
-		self.client.scanner.stop_scan()
+		ClientHolder().ble_client.scanner.stop_scan()
 		if self._scan_thread:  # Gracefully stop the scan thread
 			self._scan_thread.join()

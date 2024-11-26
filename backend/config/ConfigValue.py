@@ -1,0 +1,11 @@
+from enum import StrEnum
+
+class ConfigValue(StrEnum):
+	pass
+
+class BLEMapping(ConfigValue):
+	FREQUENCY_BLE_UUID = "FREQUENCY_BLE_UUID"
+	PHASE_BLE_UUID = "VOLTAGE_BLE_UUID"
+	MODULE_BLE_UUID = "CURRENT_BLE_UUID"
+	DEVICE_BASE_SERVICE_UUID = "DEVICE_BASE_SERVICE_UUID"
+	pass

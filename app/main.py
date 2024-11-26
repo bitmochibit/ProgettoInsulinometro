@@ -477,8 +477,6 @@ class MainApplication(ctk.CTk):
 		self.application_message_dispatcher = EventDispatcher()
 		self.__setup_listeners()
 
-		self.client = Client()
-
 		self.fixed_test_string = ctk.IntVar(value=1)
 		self.sweep_test_string = ctk.StringVar()
 
@@ -557,7 +555,7 @@ class MainApplication(ctk.CTk):
 
 	def __device_button(self):
 		if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-			self.toplevel_window = DeviceWindow(self, self.client, self.application_message_dispatcher, self.app_theme)
+			self.toplevel_window = DeviceWindow(self, self.application_message_dispatcher, self.app_theme)
 		elif self.toplevel_window.state() == "iconic":
 			self.toplevel_window.deiconify()
 			self.toplevel_window.focus()

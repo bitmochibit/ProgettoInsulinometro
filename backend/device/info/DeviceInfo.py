@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from typing import Any
+from datetime import datetime
 
 
 @dataclass
 class DeviceInfo:
     id: str
     name: str
-    details: Any
+    update_time: datetime

@@ -1,1 +1,1 @@
-from .Client import Client
+from backend.client.Client import Client
