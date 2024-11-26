@@ -1,8 +1,9 @@
 import threading
 from queue import Empty
+from typing import Dict
 
 import customtkinter as ctk
-from customtkinter import CTkFont
+from customtkinter import CTkFont, CTkFrame
 from eventpy.eventdispatcher import EventDispatcher
 
 from app.events.ApplicationMessagesEnum import ApplicationMessagesEnum
@@ -27,12 +28,15 @@ class DeviceWindow(ctk.CTkToplevel):
 		self.application_messanger = application_message_dispatcher
 		self.app_theme = app_theme
 
-		self.devices: [BLEDeviceInfo] = []
+		self.ble_client = ClientHolder.ble_client
+		self.sl_client = ClientHolder.sl_client
+
+		self.devices: Dict[str, BLEDeviceInfo] = {}
 
 		self.searched_var = ctk.StringVar()
 
 		# This object maps an element box to the ID of the device
-		self.device_map = {}
+		self.device_map: Dict[str, CTkFrame] = {}
 
 		# Coordinates for the top window to be centered (relative to master)
 		width = 600
@@ -81,7 +85,7 @@ class DeviceWindow(ctk.CTkToplevel):
 
 		pass
 
-	def __search_match(self, device: DeviceInfo, search_text: str) -> bool:
+	def __search_match(self, device: BLEDeviceInfo, search_text: str) -> bool:
 		"""
 		Checks if a device matches the search query.
 		"""
@@ -93,22 +97,26 @@ class DeviceWindow(ctk.CTkToplevel):
 		return search_text in str(device.id).lower() or search_text in str(device.name or "").lower()
 
 	def __search(self):
-		"""
-		Updates the visibility of device boxes based on the search query.
-		"""
-		search_query = self.searched_var.get()
+		search_query = self.searched_var.get().lower()
+		matched_devices = [dev for dev in self.devices.values() if self.__search_match(dev, search_query)]
 
-		for device in self.devices:
-			if self.__search_match(device, search_query):
-				self.__show_device_box(device)
-			else:
-				self.__hide_device_box(device)
+		# Hide all devices
+		for device_box in self.discovered_devices_container.winfo_children():
+			device_box.pack_forget()
 
-	def __create_device_box(self, device_info: DeviceInfo):
+		# Show matched devices
+		for device in matched_devices:
+			self.__show_device_box(device)
+
+	def __create_device_box(self, device_info: BLEDeviceInfo):
 		if device_info.id is None:
 			raise Exception("Invalid device id")
 
 		device_name = device_info.name or "Dispositivo senza nome"
+		if device_info.local_name is not None and device_info.local_name != device_info.name:
+			device_name += f" ~ ({device_info.local_name})"
+
+
 
 		device_box = ctk.CTkFrame(self.discovered_devices_container, fg_color=self.app_theme.element_background,
 								  corner_radius=5)
@@ -143,7 +151,7 @@ class DeviceWindow(ctk.CTkToplevel):
 		button_container.rowconfigure(0, weight=1)
 		button_container.columnconfigure(0, weight=1)
 
-		if self.client.last_connected_device == device_info and self.client.is_connected:
+		if self.ble_client.last_connected_device == device_info and self.ble_client.is_connected:
 			disconnect_device_button = ctk.CTkButton(button_container,
 													 text="Disconnetti",
 													 fg_color=self.app_theme.danger_button,
@@ -152,7 +160,7 @@ class DeviceWindow(ctk.CTkToplevel):
 													 hover_color=scale_lightness(self.app_theme.danger_button, 0.95),
 													 width=200,
 													 corner_radius=5,
-													 command=lambda: self.client.disconnect(self.__handle_disconnection)
+													 command=lambda:self.ble_client.disconnect(self.__handle_disconnection)
 													 )
 			disconnect_device_button.grid(row=0, column=0)
 		else:
@@ -164,7 +172,7 @@ class DeviceWindow(ctk.CTkToplevel):
 												  hover_color=scale_lightness(self.app_theme.primary_button, 0.95),
 												  width=200,
 												  corner_radius=5,
-												  command=lambda: self.client.connect(device_info,
+												  command=lambda: self.ble_client.connect(device_info,
 																					  self.__handle_connection)
 												  )
 			connect_device_button.grid(row=0, column=0)
@@ -184,6 +192,7 @@ class DeviceWindow(ctk.CTkToplevel):
 
 	def __remove_device_box(self, device_info: DeviceInfo):
 		if device_info.id in self.device_map:
+			self.device_map[device_info.id].pack_forget()
 			self.device_map[device_info.id].destroy()
 			del self.device_map[device_info.id]
 
@@ -210,35 +219,43 @@ class DeviceWindow(ctk.CTkToplevel):
 	# Backend methods
 
 	def __start_scan(self):
-		self._scan_thread = threading.Thread(target=ClientHolder().ble_client.scanner.run_scan)
+		self._scan_thread = threading.Thread(target=self.ble_client.scanner.run_scan)
 		self._scan_thread.start()
 
 		self.__update_devices()
 
 	def __update_devices(self):
 		# Inside each of client, there's a scanner which contains the list of devices (and eventually they get updated)
-		ble_scanner = ClientHolder().ble_client.scanner
+		ble_scanner = self.ble_client.scanner
 
 		for scanned_device in ble_scanner.device_list:
-			# Check if the id is already in the list of devices (if it is, update the device info if the current update_time is greater than the one stored), otherwise add it
-			if scanned_device in self.devices:
-				if scanned_device.update_time > self.devices[scanned_device.id].update_time:
-					self.devices[scanned_device.id] = scanned_device
+			# Check if the id is already in the list of devices
+			# (if it is, update the device info if the current update_time is greater than the one stored), otherwise add it
+
+			device_id = scanned_device.id
+			if device_id in self.devices:
+				# Update the device if the new update_time is more recent
+				if scanned_device.update_time > self.devices[device_id].update_time:
+					self.devices[device_id] = scanned_device
 					self.__update_device_box(scanned_device)
 			else:
-				self.devices.append(scanned_device)
+				# Add the new device to the devices dictionary
+				self.devices[device_id] = scanned_device
 				self.__create_device_box(scanned_device)
 
 		# Remove devices that are no longer in the list
-		for device in self.devices:
-			if device not in ble_scanner.device_list:
-				self.devices.remove(device)
-				self.__remove_device_box(device)
+
+		scanned_ids = {device.id for device in ble_scanner.device_list}
+		# Find and remove devices that are no longer present in the scan
+		for device_id in list(self.devices.keys()):  # Use list() to avoid modifying the dictionary while iterating
+			if device_id not in scanned_ids:
+				removed_device = self.devices.pop(device_id)  # Remove the device
+				self.__remove_device_box(removed_device)  # Handle any UI or logic cleanup
 
 		# Schedule the next poll
 		self.after(5000, self.__update_devices)
 
 	def __stop_scan(self):
-		ClientHolder().ble_client.scanner.stop_scan()
+		self.ble_client.scanner.stop_scan()
 		if self._scan_thread:  # Gracefully stop the scan thread
 			self._scan_thread.join()
