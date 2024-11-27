@@ -2,7 +2,7 @@
 import asyncio
 import threading
 from asyncio import AbstractEventLoop
-from typing import Optional
+from typing import Optional, Callable, Any
 
 
 class BackendProvider:
@@ -16,6 +16,18 @@ class BackendProvider:
 			BackendProvider().start_event_loop()
 
 		return BackendProvider._loop_instance
+
+	@staticmethod
+	def run_async(coro, callback: Callable[[Any, Any], None] = None, timeout = 100):
+		"""Runs a coroutine safely in the event loop."""
+		async def with_timeout():
+			return await asyncio.wait_for(coro, timeout=timeout)
+
+		future = asyncio.run_coroutine_threadsafe(with_timeout(), BackendProvider.get_event_loop())
+		if callback:
+			future.add_done_callback(
+				lambda fut: callback(fut.result() if fut.exception() is None else None, fut.exception())
+			)
 
 
 	def start_event_loop(self):

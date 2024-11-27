@@ -27,44 +27,44 @@ PROPERTY_MAPPING = {
 
 class BLECommunicatorService(DeviceService):
 	def __init__(self):
-		self.last_connected_device: Optional[DeviceInfo] = None
+		self._last_connected_device: Optional[DeviceInfo] = None
+		self._is_connected = False
 		self.bleak_client: Optional[BleakClient]
 		self.scanner = BLEScanner()
-		self.is_connected = False
 		self.loop = BackendProvider.get_event_loop()
 
 	def connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
 		"""Non-blocking connect method."""
-		self.last_connected_device = device
-		self._run_coroutine_threadsafe(self._connect(device), self.loop)
+		self._last_connected_device = device
+		BackendProvider.run_async(self._connect(device), callback)
 
 	def disconnect(self, callback: Callable[[DeviceInfo, Any], None] = None):
 		"""Non-blocking disconnect method."""
-		self._run_coroutine_threadsafe(self._disconnect(), self.loop)
+		BackendProvider.run_async(self._disconnect(), callback)
 
 	def read_data(self, device_property: DeviceProperty, callback: Callable[[Any, Any], None] = None):
 		"""Non-blocking read data method."""
-		self._run_coroutine_threadsafe(self._read_data(device_property), self.loop)
+		BackendProvider.run_async(self._read_data(device_property), callback)
 
 	def write_data(self, device_property: DeviceProperty, data: Any, callback: Callable[[Any, Any], None] = None):
 		"""Non-blocking write data method."""
-		self._run_coroutine_threadsafe(self._write_data(device_property, data), self.loop)
+		BackendProvider.run_async(self._write_data(device_property, data), callback)
 
 	def is_connected(self) -> bool:
 		"""Returns the connection status of the device."""
-		return self.is_connected
+		return self._is_connected
 		pass
 
 	def last_connected_device(self) -> DeviceInfo:
 		"""Returns the last connected device."""
-		return self.last_connected_device
+		return self._last_connected_device
 		pass
 
 	# Internal handling methods
 
 	async def _read_data(self, device_property: DeviceProperty):
 		"""Async method to read data and pass it to the callback."""
-		if not self.is_connected:
+		if not self._is_connected:
 			print("Device is not connected")
 			return
 		services = self.bleak_client.services
@@ -81,7 +81,7 @@ class BLECommunicatorService(DeviceService):
 
 	async def _write_data(self, device_property: DeviceProperty, data: Any):
 		"""Async method to write data to a BLE device."""
-		if not self.is_connected:
+		if not self._is_connected:
 			print("Device is not connected")
 			return
 
@@ -90,43 +90,33 @@ class BLECommunicatorService(DeviceService):
 
 	async def _disconnect(self):
 		"""Async method to disconnect from the BLE device."""
-		if self.bleak_client and self.is_connected:
+		if self.bleak_client and self._is_connected:
 			await self.bleak_client.disconnect()
-			self.is_connected = False
+			self._is_connected = False
 			print(
-				f"Disconnected from device {self.last_connected_device.id} (Named {self.last_connected_device.name})")
+				f"Disconnected from device {self._last_connected_device.id} (Named {self._last_connected_device.name})")
+			return self._last_connected_device
 
 	async def _connect(self, device: DeviceInfo):
 		"""Async method to establish a connection to a BLE device."""
-		if self.is_connected:
+		if self._is_connected:
 			await self._disconnect()
-		self.last_connected_device = device
+		self._last_connected_device = device
 		self.bleak_client = BleakClient(device.id)
 
 		await self.bleak_client.connect()
 		if self.bleak_client.is_connected:
-			self.is_connected = True
+			self._is_connected = True
 			print(f"Connected to {device.id} (Named {device.name})")
+			return device
 		else:
 			await self._disconnect()
 
-	def _run_coroutine_threadsafe(self, coro, callback=None):
-		"""Runs a coroutine safely in the event loop."""
-		try:
-			future = asyncio.run_coroutine_threadsafe(coro, self.loop)
-			result = future.result(timeout=10)
-			if callback:
-				callback(result, None)
-		except Exception as e:
-			print(f"Error in coroutine: {e}")
-			if callback:
-				callback(None, e)
-
 	async def __aenter__(self):
 		"""Async context manager entry: automatically starts the loop and connects."""
-		if not self.last_connected_device:
+		if not self._last_connected_device:
 			raise ValueError("Device not specified. Set `connected_device` before entering context.")
-		await self._connect(self.last_connected_device)
+		await self._connect(self._last_connected_device)
 		return self
 
 	async def __aexit__(self, exc_type, exc, tb):

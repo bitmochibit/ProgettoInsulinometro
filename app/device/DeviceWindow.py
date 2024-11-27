@@ -149,7 +149,9 @@ class DeviceWindow(ctk.CTkToplevel):
 		button_container.rowconfigure(0, weight=1)
 		button_container.columnconfigure(0, weight=1)
 
-		if self.ble_controller.last_connected_device().id == device_info.id and self.ble_controller.is_connected():
+		last_connected_device = self.ble_controller.last_connected_device()
+
+		if last_connected_device is not None and last_connected_device.id == device_info.id and self.ble_controller.is_connected():
 			disconnect_device_button = ctk.CTkButton(button_container,
 			                                         text="Disconnetti",
 			                                         fg_color=self.app_theme.danger_button,
