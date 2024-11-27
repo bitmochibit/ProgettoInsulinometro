@@ -35,7 +35,6 @@ class BLECommunicatorService(DeviceService):
 
 	def connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
 		"""Non-blocking connect method."""
-		self._last_connected_device = device
 		BackendProvider.run_async(self._connect(device), callback)
 
 	def disconnect(self, callback: Callable[[DeviceInfo, Any], None] = None):
@@ -78,6 +77,7 @@ class BLECommunicatorService(DeviceService):
 					print(f"Attempting to read from {characteristic.uuid}, handle: {characteristic.handle} ")
 					data = await self.bleak_client.read_gatt_char(characteristic.handle)
 					print(f"Data read from device: {data}")
+					return data
 
 	async def _write_data(self, device_property: DeviceProperty, data: Any):
 		"""Async method to write data to a BLE device."""
@@ -107,6 +107,7 @@ class BLECommunicatorService(DeviceService):
 		await self.bleak_client.connect()
 		if self.bleak_client.is_connected:
 			self._is_connected = True
+			self._last_connected_device = device
 			print(f"Connected to {device.id} (Named {device.name})")
 			return device
 		else:

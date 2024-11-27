@@ -27,9 +27,9 @@ class BLEScanner(AbstractScanner):
 		else:
 			self.device_dict[device.address] = BLEDeviceInfo.from_device(device, advertisement_data)
 
-	def start_scan(self, time):
+	def start_scan(self, max_time):
 		self.scanning = True
-		asyncio.run_coroutine_threadsafe(self.run_scan(time), self.loop)
+		asyncio.run_coroutine_threadsafe(self.run_scan(max_time), self.loop)
 
 	def stop_scan(self):
 		self.scanning = False

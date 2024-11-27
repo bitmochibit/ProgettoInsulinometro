@@ -17,6 +17,7 @@ from app.templates.CustomTitleMenu import CustomTitleMenu
 from app.templates.LabelledInput import LabelledInput
 from app.utils.Color import color_str_to_hex, scale_lightness
 from backend import DeviceService
+from backend.container.Container import Container
 
 from theme.AppTheme import AppTheme
 
@@ -535,10 +536,12 @@ class MainApplication(ctk.CTk):
 
 	# Funzioni dei pulsanti
 	def __start_button(self):
-		self.start_value_reader()
+		serial_device = Container.device_container.serial_device_controller()
+		serial_device.write_data(None, b"start", None)
 
 	def __stop_button(self):
-		self.stop_value_reader()
+		serial_device = Container.device_container.serial_device_controller()
+		serial_device.write_data(None, b"stop", None)
 
 	def __marker_button(self):
 		print("marker button")
