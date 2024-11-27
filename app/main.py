@@ -16,7 +16,7 @@ from app.templates.CustomTabView import CustomTabView
 from app.templates.CustomTitleMenu import CustomTitleMenu
 from app.templates.LabelledInput import LabelledInput
 from app.utils.Color import color_str_to_hex, scale_lightness
-from backend import Client
+from backend import DeviceService
 
 from theme.AppTheme import AppTheme
 

@@ -1,1 +1,1 @@
-from backend.client.Client import Client
+from backend.services.device.DeviceService import DeviceService

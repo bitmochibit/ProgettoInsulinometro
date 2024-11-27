@@ -5,7 +5,7 @@ from backend.device.info import DeviceInfo
 from backend.device.DeviceProperty import DeviceProperty
 
 
-class Client(ABC):
+class DeviceService(ABC):
 	@abstractmethod
 	def connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
 		pass
@@ -20,4 +20,12 @@ class Client(ABC):
 
 	@abstractmethod
 	def read_data(self, device_property: DeviceProperty, callback: Callable[[Any, Any], None] = None) -> Any:
+		pass
+
+	@abstractmethod
+	def is_connected(self) -> bool:
+		pass
+
+	@abstractmethod
+	def last_connected_device(self) -> DeviceInfo:
 		pass

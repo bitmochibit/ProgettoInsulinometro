@@ -2,11 +2,17 @@ import os
 import yaml
 
 from backend.config.ConfigValue import BLEMapping
-from backend.utils.Singleton import Singleton
 
 
-class Configuration(metaclass=Singleton):
+
+class Configuration:
+	_instance = None
 	config_file_path = os.path.join(os.path.dirname(__file__), 'config.yaml')
+
+	def __new__(cls):
+		if cls._instance is None:
+			cls._instance = super(Configuration, cls).__new__(cls)
+		return cls._instance
 
 	def __init__(self):
 		# Check if configuration default YAML file exists, if not create it

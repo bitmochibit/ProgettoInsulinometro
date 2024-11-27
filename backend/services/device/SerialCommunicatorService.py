@@ -1,10 +1,10 @@
 from typing import Callable, Any
 
-from backend import Client
+from backend import DeviceService
 from backend.device.DeviceProperty import DeviceProperty
 from backend.device.info import DeviceInfo
 
-class SLClient(Client):
+class SerialCommunicatorService(DeviceService):
 	""" Serial connection client class """
 
 	def disconnect(self, callback: Callable[[DeviceInfo, Any], None] = None):
@@ -17,4 +17,10 @@ class SLClient(Client):
 		pass
 
 	def connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
+		pass
+
+	def last_connected_device(self) -> DeviceInfo:
+		pass
+
+	def is_connected(self) -> bool:
 		pass
