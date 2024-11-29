@@ -27,11 +27,14 @@ PROPERTY_MAPPING = {
 
 class BLECommunicatorService(DeviceService):
 	def __init__(self):
-		self._last_connected_device: Optional[DeviceInfo] = None
-		self._is_connected = False
 		self.bleak_client: Optional[BleakClient]
 		self.scanner = BLEScanner()
 		self.loop = BackendProvider.get_event_loop()
+		self._last_connected_device = None
+
+	@property
+	def _is_connected(self):
+		return self.bleak_client.is_connected
 
 	def connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
 		"""Non-blocking connect method."""
@@ -91,8 +94,8 @@ class BLECommunicatorService(DeviceService):
 	async def _disconnect(self):
 		"""Async method to disconnect from the BLE device."""
 		if self.bleak_client and self._is_connected:
+
 			await self.bleak_client.disconnect()
-			self._is_connected = False
 			print(
 				f"Disconnected from device {self._last_connected_device.id} (Named {self._last_connected_device.name})")
 			return self._last_connected_device
@@ -100,25 +103,17 @@ class BLECommunicatorService(DeviceService):
 	async def _connect(self, device: DeviceInfo):
 		"""Async method to establish a connection to a BLE device."""
 		if self._is_connected:
-			await self._disconnect()
-		self._last_connected_device = device
+			raise Exception(f"Already connected to a device, ${self._last_connected_device.id}")
+
 		self.bleak_client = BleakClient(device.id)
 
 		await self.bleak_client.connect()
-		if self.bleak_client.is_connected:
-			self._is_connected = True
-			self._last_connected_device = device
+		if self._is_connected:
 			print(f"Connected to {device.id} (Named {device.name})")
+			self._last_connected_device = device
 			return device
 		else:
-			await self._disconnect()
-
-	async def __aenter__(self):
-		"""Async context manager entry: automatically starts the loop and connects."""
-		if not self._last_connected_device:
-			raise ValueError("Device not specified. Set `connected_device` before entering context.")
-		await self._connect(self._last_connected_device)
-		return self
+			return None
 
 	async def __aexit__(self, exc_type, exc, tb):
 		"""Async context manager exit: disconnects and stops the loop."""

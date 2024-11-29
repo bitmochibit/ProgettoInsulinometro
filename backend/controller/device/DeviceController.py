@@ -1,4 +1,7 @@
+from dependency_injector.providers import Selector
+
 from backend import DeviceService
+from backend.device.DeviceProperty import DeviceProperty
 from backend.device.info.DeviceInfo import DeviceInfo
 
 
@@ -6,7 +9,7 @@ class DeviceController:
 	def __init__(self, device_service: DeviceService):
 		self.deviceService = device_service
 
-	def connect(self, device, callback):
+	def connect(self, device: DeviceInfo, callback):
 		self.deviceService.connect(device, callback)
 		pass
 
@@ -14,11 +17,11 @@ class DeviceController:
 		self.deviceService.disconnect(callback)
 		pass
 
-	def read_data(self, device_property, callback):
+	def read_data(self, device_property: DeviceProperty, callback):
 		self.deviceService.read_data(device_property, callback)
 		pass
 
-	def write_data(self, device_property, data, callback):
+	def write_data(self, device_property: DeviceProperty, data, callback):
 		self.deviceService.write_data(device_property, data, callback)
 
 	def is_connected(self) -> bool:

@@ -1,7 +1,7 @@
+import tkinter
 from typing import Dict
 
 import customtkinter as ctk
-from PIL.ImageOps import expand
 from customtkinter import CTkFont, CTkFrame, CTkLabel
 from eventpy.eventdispatcher import EventDispatcher
 
@@ -10,16 +10,14 @@ from app.templates.SearchBar import SearchBar
 from app.theme.AppTheme import AppTheme
 from app.utils.Color import scale_lightness
 from backend.container.Container import Container
-from backend.controller.device import SerialScannerController
-from backend.controller.device.BLEScannerController import BLEScannerController
 from backend.controller.device.DeviceController import DeviceController
+from backend.controller.device.ScannerController import ScannerController
 from backend.device.info.BLEDeviceInfo import BLEDeviceInfo
 from backend.device.info.DeviceInfo import DeviceInfo
 from backend.device.info.SerialDeviceInfo import SerialDeviceInfo
 
 
 def format_info(device_info: DeviceInfo) -> Dict[str, str]:
-	final_dict = {}
 	device_name = device_info.name
 	device_description = f"Indirizzo: {device_info.id} | Ultimo aggiornamento: {device_info.update_time.strftime('%H:%M:%S')}"
 
@@ -31,10 +29,7 @@ def format_info(device_info: DeviceInfo) -> Dict[str, str]:
 		device_name = device_name or "Dispositivo seriale senza nome"
 		device_description += f" | Porta: {device_info.name}"
 
-	final_dict["name"] = device_name
-	final_dict["description"] = device_description
-
-	return final_dict
+	return {"name": device_name, "description": device_description}
 
 
 class DeviceWindow(ctk.CTkToplevel):
@@ -49,94 +44,90 @@ class DeviceWindow(ctk.CTkToplevel):
 		self.application_messanger = application_message_dispatcher
 		self.app_theme = app_theme
 
-		self.__setup()
-
 		# This object maps an element box to the ID of the device
 		self.device_map: Dict = {}
-
-		# Coordinates for the top window to be centered (relative to master)
-
 		self.searched_var = ctk.StringVar()
+		self.devices: Dict[str, DeviceInfo] = {}
 
-		width = 600
-		height = 500
-
-		master_x = master.winfo_x()
-		master_y = master.winfo_y()
-		master.update_idletasks()
-		master_width = master.winfo_width()
-		master_height = master.winfo_height()
-
-		pos_x = master_x + (master_width - width) // 2
-		pos_y = master_y + (master_height - height) // 2
-
-		self.geometry(f"{width}x{height}+{pos_x}+{pos_y}")
-
-		self.title("")
-
-		self.__setup_window()
-
-	def __setup(self):
+		# Device controllers
 		self.ble_ctr: DeviceController = Container.device_container.ble_device_controller()
 		self.serial_ctr: DeviceController = Container.device_container.serial_device_controller()
 
-		self.ble_scanner: BLEScannerController = Container.device_container.ble_scanner_controller()
-		self.serial_scanner: SerialScannerController = Container.device_container.serial_scanner_controller()
+		# Scanner controllers
+		self.ble_scanner: ScannerController = Container.device_container.ble_scanner_controller()
+		self.serial_scanner: ScannerController = Container.device_container.serial_scanner_controller()
 
-		self.devices: Dict[str, DeviceInfo] = {}
-
-	def __setup_window(self):
-		container = ctk.CTkFrame(self, fg_color=self.app_theme.primary_background)
-		container.pack(side="top", fill="both", padx=5, pady=5, expand=True)
-
-		self.search_bar = SearchBar(container,
-		                            fg_color=self.app_theme.element_background,
-		                            placeholder_text="🔎 Find device",
-		                            placeholder_text_color=self.app_theme.light_gray_text,
-		                            text_color=self.app_theme.primary_text,
-		                            textvariable=self.searched_var,
-		                            corner_radius=5,
-		                            border_width=1,
-		                            border_color=self.app_theme.light_gray_text)
-		self.search_bar.pack(side="top", fill="x")
-
-		def on_type(e):
-			self.__search()
-
-		self.search_bar.bind_input("<KeyRelease>", on_type)
-
-		super_scrollable_frame = ctk.CTkScrollableFrame(container, fg_color=self.app_theme.primary_background,
-		                                                scrollbar_button_color=self.app_theme.secondary_background)
-		super_scrollable_frame.pack(side="top", fill="both", expand=True)
-
-		# Container for the connected device
-		self.connected_device_container = ctk.CTkFrame(super_scrollable_frame,
-		                                               fg_color=self.app_theme.primary_background)
-		self.connected_device_container.pack(side="top", fill="both", expand=True)
-
-		first_horizontal_separator = ctk.CTkFrame(super_scrollable_frame, fg_color=self.app_theme.light_gray_text,
-		                                          height=5)
-		first_horizontal_separator.pack(side="top", fill="x", pady=5)
-
-		# Container for the discovered devices
-		self.discovered_devices_serial = ctk.CTkScrollableFrame(super_scrollable_frame,
-		                                                        fg_color=self.app_theme.primary_background)
-		self.discovered_devices_serial.pack(side="top", fill="both", expand=True)
-
-		second_horizontal_separator = ctk.CTkFrame(super_scrollable_frame, fg_color=self.app_theme.light_gray_text,
-		                                           height=5)
-		second_horizontal_separator.pack(side="top", fill="x", pady=5)
-
-		# Container for the discovered BLE devices
-		self.discovered_devices_ble = ctk.CTkScrollableFrame(super_scrollable_frame,
-		                                                     fg_color=self.app_theme.primary_background)
-		self.discovered_devices_ble.pack(side="top", fill="both", expand=True)
-
+		self.__initialize_window()
 		self.__start_scan()
 
-		pass
+	def __initialize_window(self):
+		self.base = ctk.CTkFrame(self, fg_color=self.app_theme.primary_background)
+		self.base.pack(side="top", fill="both", padx=5, pady=5, expand=True)
 
-	def __search_match(self, device: BLEDeviceInfo, search_text: str) -> bool:
+		self.__setup_search_bar(self.base)
+		self.__setup_device_containers(self.base)
+
+		self.geometry(self.__center_window())
+
+	def __center_window(self) -> str:
+		"""Return the geometry string to center the window on the screen."""
+		width, height = 600, 500
+		master_x, master_y = self.master.winfo_x(), self.master.winfo_y()
+		self.master.update_idletasks()
+		master_width, master_height = self.master.winfo_width(), self.master.winfo_height()
+		pos_x = master_x + (master_width - width) // 2
+		pos_y = master_y + (master_height - height) // 2
+		return f"{width}x{height}+{pos_x}+{pos_y}"
+
+	def __setup_search_bar(self, container: ctk.CTkFrame):
+		self.search_bar = SearchBar(
+			container, fg_color=self.app_theme.element_background,
+			placeholder_text="🔎 Find device", placeholder_text_color=self.app_theme.light_gray_text,
+			text_color=self.app_theme.primary_text, textvariable=self.searched_var, corner_radius=5,
+			border_width=1, border_color=self.app_theme.light_gray_text
+		)
+		self.search_bar.pack(side="top", fill="x")
+		self.search_bar.bind_input("<KeyRelease>", lambda e: self.__search())
+
+	def __add_separator(self, container, row, height=5, padding=5, color=None):
+		if color is None:
+			color = self.app_theme.light_gray_text
+
+		"""Add a horizontal separator between sections."""
+		separator = ctk.CTkFrame(container, fg_color=color, height=height)
+		separator.grid(row=row, column=0, sticky="ew", pady=padding)
+
+	def __setup_device_containers(self, container: ctk.CTkFrame):
+
+		super_scrollable_frame = ctk.CTkScrollableFrame(container, fg_color=self.app_theme.primary_background,scrollbar_button_color=self.app_theme.secondary_background)
+		super_scrollable_frame.pack(side="top", fill="both", expand=True)
+
+		super_scrollable_frame.rowconfigure(0, weight=1)
+		super_scrollable_frame.columnconfigure(0, weight=1)
+
+		# Container for the connected device
+		self.connected_device_container = ctk.CTkFrame(super_scrollable_frame, fg_color=self.app_theme.primary_background)
+		self.connected_device_container.grid(row=0, column=0, sticky="ew", pady=5, padx=5)
+		self.connected_device_container.rowconfigure(0, weight=1)
+		self.connected_device_container.columnconfigure(0, weight=1)
+
+		self.__add_separator(super_scrollable_frame, 1)
+
+		# Container for the discovered devices
+		self.discovered_devices_serial = ctk.CTkScrollableFrame(super_scrollable_frame, fg_color=self.app_theme.primary_background)
+		self.discovered_devices_serial.grid(row=2, column=0, sticky="ew", pady=5, padx=5)
+		self.discovered_devices_serial.rowconfigure(0, weight=1)
+		self.discovered_devices_serial.columnconfigure(0, weight=1)
+
+		self.__add_separator(super_scrollable_frame, 3)
+
+		# Container for the discovered BLE devices
+		self.discovered_devices_ble = ctk.CTkScrollableFrame(super_scrollable_frame, fg_color=self.app_theme.primary_background)
+		self.discovered_devices_ble.grid(row=4, column=0, sticky="ew", pady=5, padx=5)
+		self.discovered_devices_ble.rowconfigure(0, weight=1)
+		self.discovered_devices_ble.columnconfigure(0, weight=1)
+
+	def __search_match(self, device: DeviceInfo, search_text: str) -> bool:
 		"""
 		Checks if a device matches the search query.
 		"""
@@ -149,38 +140,33 @@ class DeviceWindow(ctk.CTkToplevel):
 
 	def __search(self):
 		search_query = self.searched_var.get().lower()
-		matched_devices = [dev for dev in self.ble_devices.values() if self.__search_match(dev, search_query)]
+		matched_devices = [dev for dev in self.devices.values() if self.__search_match(dev, search_query)]
 
 		# Hide all devices
 		for device_box in self.discovered_devices_ble.winfo_children():
+			device_box.pack_forget()
+
+		for device_box in self.discovered_devices_serial.winfo_children():
 			device_box.pack_forget()
 
 		# Show matched devices
 		for device in matched_devices:
 			self.__show_device_box(device)
 
-	def __create_device_box(self, device_info: DeviceInfo):
+	def __get_device_container(self, device_info: DeviceInfo):
+		if isinstance(device_info, BLEDeviceInfo):
+			return self.discovered_devices_ble
+		elif isinstance(device_info, SerialDeviceInfo):
+			return self.discovered_devices_serial
+		else:
+			raise Exception("Invalid device type")
+
+	def __create_device_box(self, device_info: DeviceInfo, device_container: tkinter.Frame):
 		if device_info.id is None:
 			raise Exception("Invalid device id")
 
-		if isinstance(device_info, BLEDeviceInfo):
-			selected_controller = self.ble_ctr
-		else:
-			selected_controller = self.serial_ctr
-
-		last_connected_device = selected_controller.last_connected_device()
-		device_connected = last_connected_device is not None and last_connected_device.id == device_info.id and selected_controller.is_connected()
-
-		if device_connected:
-			selected_container = self.connected_device_container
-		elif isinstance(device_info, SerialDeviceInfo):
-			selected_container = self.discovered_devices_serial
-		else:
-			selected_container = self.discovered_devices_ble
-
-		device_box = ctk.CTkFrame(selected_container, fg_color=self.app_theme.element_background,
-		                          corner_radius=5)
-		device_box.pack(side="top", fill="x", pady=5)
+		device_box = ctk.CTkFrame(device_container, fg_color=self.app_theme.element_background,corner_radius=5)
+		device_box.grid(row=len(device_container.winfo_children()), column=0, sticky="ew", pady=5, padx=5)
 
 		device_info_container = ctk.CTkFrame(
 			device_box,
@@ -213,7 +199,7 @@ class DeviceWindow(ctk.CTkToplevel):
 		button_container.rowconfigure(0, weight=1)
 		button_container.columnconfigure(0, weight=1)
 
-		if device_connected:
+		if device_container == self.connected_device_container:
 			disconnect_device_button = ctk.CTkButton(button_container,
 			                                         text="Disconnetti",
 			                                         fg_color=self.app_theme.danger_button,
@@ -260,35 +246,35 @@ class DeviceWindow(ctk.CTkToplevel):
 		device_name_label.configure(text=formatted_info["name"])
 		device_description_label.configure(text=formatted_info["description"])
 
-
-	def __show_device_box(self, device_info: BLEDeviceInfo):
-		self.device_map[device_info.id].pack(side="top", fill="x", pady=5)
+	def __show_device_box(self, device_info: DeviceInfo):
+		self.device_map[device_info.id]["device_box"].pack(side="top", fill="x", pady=5)
 
 	def __remove_device_box(self, device_info: DeviceInfo):
 		if device_info.id in self.device_map:
-			box = self.device_map[device_info.id]["device_box"]
-			box.pack_forget()
+			box: CTkFrame = self.device_map[device_info.id]["device_box"]
+			box.grid_forget()
 			box.destroy()
 			del self.device_map[device_info.id]
 
-	def __hide_device_box(self, device_info: BLEDeviceInfo):
+	def __hide_device_box(self, device_info: DeviceInfo):
 		if device_info.id in self.device_map:
-			self.device_map[device_info.id].pack_forget()
+			self.device_map[device_info.id]["device_box"].grid_remove()
 
 	def __handle_connection(self, device_info: DeviceInfo, error=None):
 		if error is not None:
 			return print(f"Unable to connect to device, {error}")
 
 		self.__remove_device_box(device_info)
-		self.__create_device_box(device_info)
+		self.__create_device_box(device_info, self.connected_device_container)
 		self.application_messanger.dispatch(ApplicationMessagesEnum.START_VALUE_READER)
 
 	def __handle_disconnection(self, device_info: DeviceInfo, error=None):
 		if error is not None:
 			return print(f"Unable to disconnect, {error}")
 
+
 		self.__remove_device_box(device_info)
-		self.__create_device_box(device_info)
+		self.__create_device_box(device_info, self.__get_device_container(device_info))
 		self.application_messanger.dispatch(ApplicationMessagesEnum.STOP_VALUE_READER)
 
 	def __start_scan(self):
@@ -313,14 +299,9 @@ class DeviceWindow(ctk.CTkToplevel):
 		elif isinstance(device_info, SerialDeviceInfo):
 			self.serial_ctr.disconnect(self.__handle_disconnection)
 
-
 	def __update_devices(self):
 		# Inside each of client, there's a scanner which contains the list of devices (and eventually they get updated)
-		scanned_devices = {}
-		for device in self.ble_scanner.get_devices().values():
-			scanned_devices[device.id] = device
-		for device in self.serial_scanner.get_devices().values():
-			scanned_devices[device.id] = device
+		scanned_devices = {**self.ble_scanner.get_devices(), **self.serial_scanner.get_devices()}
 
 		for scanned_id, scanned_device in scanned_devices.items():
 			# Check if the id is already in the list of devices
@@ -334,11 +315,11 @@ class DeviceWindow(ctk.CTkToplevel):
 			else:
 				# Add the new device to the devices dictionary
 				self.devices[scanned_id] = scanned_device
-				self.__create_device_box(scanned_device)
+				self.__create_device_box(scanned_device, self.__get_device_container(scanned_device))
 
 		# Find and remove devices that are no longer present in the scan
-		for device_id, device in self.devices.items():
-			if device_id not in list(scanned_devices.keys()):
+		for device_id in list(self.devices.keys()):
+			if device_id not in scanned_devices:
 				removed_device = self.devices.pop(device_id)  # Remove the device
 				self.__remove_device_box(removed_device)
 
