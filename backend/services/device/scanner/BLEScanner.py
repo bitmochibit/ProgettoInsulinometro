@@ -3,7 +3,7 @@ from typing import Dict
 
 from bleak import BLEDevice, AdvertisementData, BleakScanner
 
-from backend.BackendProvider import BackendProvider
+from backend.EventLoopProvider import EventLoopProvider
 from backend.device.info.BLEDeviceInfo import BLEDeviceInfo
 from backend.services.device.scanner.AbstractScanner import AbstractScanner
 
@@ -16,7 +16,7 @@ class BLEScanner(AbstractScanner):
 	def __init__(self):
 		self.device_dict: Dict[str, BLEDeviceInfo] = {}
 		self.scanning = False
-		self.loop = BackendProvider.get_event_loop()
+		self.loop = EventLoopProvider.get_event_loop()
 		self.scan_time = 0
 		self.scan_interval = 0.1
 

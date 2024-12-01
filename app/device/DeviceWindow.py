@@ -49,9 +49,8 @@ class DeviceWindow(ctk.CTkToplevel):
 		self.searched_var = ctk.StringVar()
 		self.devices: Dict[str, DeviceInfo] = {}
 
-		# Device controllers
-		self.ble_ctr: DeviceController = Container.device_container.ble_device_controller()
-		self.serial_ctr: DeviceController = Container.device_container.serial_device_controller()
+		# Device controller
+		self.device_controller: DeviceController = Container.device_container.device_controller()
 
 		# Scanner controllers
 		self.ble_scanner: ScannerController = Container.device_container.ble_scanner_controller()
@@ -208,7 +207,7 @@ class DeviceWindow(ctk.CTkToplevel):
 			                                         hover_color=scale_lightness(self.app_theme.danger_button, 0.95),
 			                                         width=200,
 			                                         corner_radius=5,
-			                                         command=lambda: self.__disconnect_device(device_info)
+			                                         command=lambda: self.device_controller.disconnect(device_info, self.__handle_disconnection)
 			                                         )
 			disconnect_device_button.grid(row=0, column=0)
 		else:
@@ -220,7 +219,7 @@ class DeviceWindow(ctk.CTkToplevel):
 			                                      hover_color=scale_lightness(self.app_theme.primary_button, 0.95),
 			                                      width=200,
 			                                      corner_radius=5,
-			                                      command=lambda: self.__connect_device(device_info)
+			                                      command=lambda: self.device_controller.connect(device_info, self.__handle_connection)
 			                                      )
 			connect_device_button.grid(row=0, column=0)
 
@@ -286,18 +285,6 @@ class DeviceWindow(ctk.CTkToplevel):
 	def __stop_scan(self):
 		self.ble_scanner.stop_scan()
 		self.serial_scanner.stop_scan()
-
-	def __connect_device(self, device_info: DeviceInfo):
-		if isinstance(device_info, BLEDeviceInfo):
-			self.ble_ctr.connect(device_info, self.__handle_connection)
-		elif isinstance(device_info, SerialDeviceInfo):
-			self.serial_ctr.connect(device_info, self.__handle_connection)
-
-	def __disconnect_device(self, device_info: DeviceInfo):
-		if isinstance(device_info, BLEDeviceInfo):
-			self.ble_ctr.disconnect(self.__handle_disconnection)
-		elif isinstance(device_info, SerialDeviceInfo):
-			self.serial_ctr.disconnect(self.__handle_disconnection)
 
 	def __update_devices(self):
 		# Inside each of client, there's a scanner which contains the list of devices (and eventually they get updated)

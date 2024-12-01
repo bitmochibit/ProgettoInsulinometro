@@ -11,14 +11,11 @@ from matplotlib.figure import Figure
 from matplotlib.pyplot import figure
 
 from app.device.DeviceWindow import DeviceWindow
-from app.events.ApplicationMessagesEnum import ApplicationMessagesEnum
 from app.templates.CustomTabView import CustomTabView
 from app.templates.CustomTitleMenu import CustomTitleMenu
 from app.templates.LabelledInput import LabelledInput
 from app.utils.Color import color_str_to_hex, scale_lightness
-from backend import DeviceService
 from backend.container.Container import Container
-
 from theme.AppTheme import AppTheme
 
 

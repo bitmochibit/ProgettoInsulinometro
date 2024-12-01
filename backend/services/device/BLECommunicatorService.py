@@ -6,7 +6,8 @@ from typing import Callable, Any, Optional
 
 from bleak import BleakClient
 
-from backend.BackendProvider import BackendProvider
+from backend.AppState import AppState
+from backend.EventLoopProvider import EventLoopProvider
 from backend.config.ConfigValue import BLEMapping
 from backend.config.Configuration import Configuration
 from backend.device.info.DeviceInfo import DeviceInfo
@@ -29,8 +30,8 @@ class BLECommunicatorService(DeviceService):
 	def __init__(self):
 		self.bleak_client: Optional[BleakClient]
 		self.scanner = BLEScanner()
-		self.loop = BackendProvider.get_event_loop()
-		self._last_connected_device = None
+		self.loop = EventLoopProvider.get_event_loop()
+		self.app_state = AppState()
 
 	@property
 	def _is_connected(self):
@@ -38,28 +39,23 @@ class BLECommunicatorService(DeviceService):
 
 	def connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
 		"""Non-blocking connect method."""
-		BackendProvider.run_async(self._connect(device), callback)
+		EventLoopProvider.run_async(self._connect(device), callback)
 
 	def disconnect(self, callback: Callable[[DeviceInfo, Any], None] = None):
 		"""Non-blocking disconnect method."""
-		BackendProvider.run_async(self._disconnect(), callback)
+		EventLoopProvider.run_async(self._disconnect(), callback)
 
 	def read_data(self, device_property: DeviceProperty, callback: Callable[[Any, Any], None] = None):
 		"""Non-blocking read data method."""
-		BackendProvider.run_async(self._read_data(device_property), callback)
+		EventLoopProvider.run_async(self._read_data(device_property), callback)
 
 	def write_data(self, device_property: DeviceProperty, data: Any, callback: Callable[[Any, Any], None] = None):
 		"""Non-blocking write data method."""
-		BackendProvider.run_async(self._write_data(device_property, data), callback)
+		EventLoopProvider.run_async(self._write_data(device_property, data), callback)
 
 	def is_connected(self) -> bool:
 		"""Returns the connection status of the device."""
 		return self._is_connected
-		pass
-
-	def last_connected_device(self) -> DeviceInfo:
-		"""Returns the last connected device."""
-		return self._last_connected_device
 		pass
 
 	# Internal handling methods
@@ -94,23 +90,23 @@ class BLECommunicatorService(DeviceService):
 	async def _disconnect(self):
 		"""Async method to disconnect from the BLE device."""
 		if self.bleak_client and self._is_connected:
-
 			await self.bleak_client.disconnect()
+			self.app_state.clear_connected_device()
+			last_device = self.app_state.last_connected_device
 			print(
-				f"Disconnected from device {self._last_connected_device.id} (Named {self._last_connected_device.name})")
-			return self._last_connected_device
+				f"Disconnected from device {last_device.id} (Named {last_device.name})")
 
 	async def _connect(self, device: DeviceInfo):
 		"""Async method to establish a connection to a BLE device."""
 		if self._is_connected:
-			raise Exception(f"Already connected to a device, ${self._last_connected_device.id}")
+			raise Exception(f"Already connected to a device, ${self.app_state.last_connected_device.id}")
 
 		self.bleak_client = BleakClient(device.id)
 
 		await self.bleak_client.connect()
 		if self._is_connected:
 			print(f"Connected to {device.id} (Named {device.name})")
-			self._last_connected_device = device
+			self.app_state.set_connected_device(device)
 			return device
 		else:
 			return None

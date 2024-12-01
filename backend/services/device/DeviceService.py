@@ -25,7 +25,3 @@ class DeviceService(ABC):
 	@abstractmethod
 	def is_connected(self) -> bool:
 		pass
-
-	@abstractmethod
-	def last_connected_device(self) -> DeviceInfo:
-		pass

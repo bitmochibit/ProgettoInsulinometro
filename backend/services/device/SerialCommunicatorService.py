@@ -3,7 +3,8 @@ from typing import Callable, Any, Optional
 from serial import Serial
 
 from backend import DeviceService
-from backend.BackendProvider import BackendProvider
+from backend.AppState import AppState
+from backend.EventLoopProvider import EventLoopProvider
 from backend.device.DeviceProperty import DeviceProperty
 from backend.device.info import DeviceInfo
 from backend.device.info.SerialDeviceInfo import SerialDeviceInfo
@@ -11,25 +12,25 @@ from backend.device.info.SerialDeviceInfo import SerialDeviceInfo
 
 class SerialCommunicatorService(DeviceService):
 	def __init__(self):
-		self._last_connected_device: Optional[SerialDeviceInfo] = None
+		self.app_state = AppState()
 		self._is_connected = False
 		self._serial_device: Optional[Serial] = None
 		pass
 
 	def disconnect(self, callback: Callable[[DeviceInfo, Any], None] = None):
-		BackendProvider.run_async(self._async_disconnect(), callback)
+		EventLoopProvider.run_async(self._async_disconnect(), callback)
 		pass
 
 	def write_data(self, device_property: DeviceProperty, data: Any, callback: Callable[[Any, Any], None] = None):
-		BackendProvider.run_async(self._async_write(device_property, data), callback)
+		EventLoopProvider.run_async(self._async_write(device_property, data), callback)
 		pass
 
 	def read_data(self, device_property: DeviceProperty, callback: Callable[[Any, Any], None] = None) -> Any:
-		BackendProvider.run_async(self._async_read(device_property), callback)
+		EventLoopProvider.run_async(self._async_read(device_property), callback)
 		pass
 
 	def connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
-		BackendProvider.run_async(self._async_connect(device), callback)
+		EventLoopProvider.run_async(self._async_connect(device), callback)
 		pass
 
 	async def _async_connect(self, device: DeviceInfo):
@@ -39,7 +40,7 @@ class SerialCommunicatorService(DeviceService):
 
 		if self._serial_device.is_open:
 			self._is_connected = True
-			self._last_connected_device = device
+			self.app_state.set_connected_device(device)
 			return device
 		pass
 
@@ -64,11 +65,8 @@ class SerialCommunicatorService(DeviceService):
 	async def _async_disconnect(self):
 		self._serial_device.close()
 		self._is_connected = False
-		return self._last_connected_device
-		pass
-
-	def last_connected_device(self) -> DeviceInfo:
-		return self._last_connected_device
+		self.app_state.clear_connected_device()
+		return self.app_state.last_connected_device
 		pass
 
 	def is_connected(self) -> bool:

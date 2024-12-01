@@ -1,9 +1,6 @@
 import time
 from typing import Dict
 
-import serial
-
-from backend.device.info.DeviceInfo import DeviceInfo
 from backend.device.info.SerialDeviceInfo import SerialDeviceInfo
 from backend.services.device.scanner.AbstractScanner import AbstractScanner
 
