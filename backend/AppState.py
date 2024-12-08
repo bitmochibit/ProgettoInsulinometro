@@ -24,7 +24,7 @@ class AppState(object):
 
 	@property
 	def connected_device(self) -> Optional[DeviceInfo]:
-		return self.connected_device
+		return self._connected_device
 
 	@property
 	def last_connected_device(self) -> Optional[DeviceInfo]:

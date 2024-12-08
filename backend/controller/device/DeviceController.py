@@ -32,6 +32,18 @@ class DeviceController:
 	def write_data(self, device: DeviceInfo, device_property: DeviceProperty, data, callback):
 		self._get_service(device).write_data(device_property, data, callback)
 
+	async def write_data_async (self, device: DeviceInfo, device_property: DeviceProperty, data):
+		return await self._get_service(device).write_data_async(device_property, data)
+
+	async def read_data_async (self, device: DeviceInfo, device_property: DeviceProperty):
+		return await self._get_service(device).read_data_async(device_property)
+
+	async def connect_async (self, device: DeviceInfo):
+		return await self._get_service(device).connect_async(device)
+
+	async def disconnect_async (self, device: DeviceInfo):
+		return await self._get_service(device).disconnect_async()
+
 	def is_connected(self) -> bool:
 		if self.app_state.connected_device is None:
 			return False
@@ -40,4 +52,6 @@ class DeviceController:
 
 	def last_connected_device(self) -> DeviceInfo:
 		return self.app_state.last_connected_device
+
+
 	pass

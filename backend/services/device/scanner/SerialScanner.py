@@ -14,13 +14,10 @@ class SerialScanner(AbstractScanner):
 		return self.device_dict
 
 
-	def start_scan(self, max_time):
-		end_time = time.time() + max_time
+	def start_scan(self):
 		ports = comports()
 		# Loop through all available ports, and add them to the device_dict (possibly by reading the name of the device)
 		for port in sorted(ports):
-			if time.time() > end_time:
-				break
 			if port.hwid is None:
 				continue
 

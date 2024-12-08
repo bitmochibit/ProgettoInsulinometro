@@ -11,11 +11,14 @@ from matplotlib.figure import Figure
 from matplotlib.pyplot import figure
 
 from app.device.DeviceWindow import DeviceWindow
+from app.device.ValueReader import ValueReader
 from app.templates.CustomTabView import CustomTabView
 from app.templates.CustomTitleMenu import CustomTitleMenu
 from app.templates.LabelledInput import LabelledInput
 from app.utils.Color import color_str_to_hex, scale_lightness
 from backend.container.Container import Container
+from backend.events.ApplicationMessagesEnum import ApplicationMessagesEnum
+from backend.events.EventBus import EventBus
 from theme.AppTheme import AppTheme
 
 
@@ -472,8 +475,9 @@ class MainApplication(ctk.CTk):
 		self.title("")
 		self.minsize(800, 600)
 
-		self.application_message_dispatcher = EventDispatcher()
 		self.__setup_listeners()
+
+		self.value_reader = ValueReader()
 
 		self.fixed_test_string = ctk.IntVar(value=1)
 		self.sweep_test_string = ctk.StringVar()
@@ -488,9 +492,6 @@ class MainApplication(ctk.CTk):
 		self.cycles_number = ctk.StringVar()
 
 		self.updating_values = False
-
-		# self.graph_yvalues = []
-		# self.graph_xvalues = []
 
 		self.graph_values = []
 
@@ -509,8 +510,8 @@ class MainApplication(ctk.CTk):
 		self.__bottom_frame()
 
 	def __setup_listeners(self):
-		#self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.START_VALUE_READER, self.start_value_reader)
-		#self.application_message_dispatcher.appendListener(ApplicationMessagesEnum.STOP_VALUE_READER, self.stop_value_reader)
+		EventBus().add_listener(ApplicationMessagesEnum.ON_TEMPERATURE_READ, self.__on_data_read)
+
 		pass
 
 	def _update_graph_value(self, figure: Figure):
@@ -533,12 +534,10 @@ class MainApplication(ctk.CTk):
 
 	# Funzioni dei pulsanti
 	def __start_button(self):
-		serial_device = Container.device_container.serial_device_controller()
-		serial_device.write_data(None, b"start", None)
+		self.value_reader.start()
 
 	def __stop_button(self):
-		serial_device = Container.device_container.serial_device_controller()
-		serial_device.write_data(None, b"stop", None)
+		self.value_reader.stop()
 
 	def __marker_button(self):
 		print("marker button")
@@ -554,7 +553,7 @@ class MainApplication(ctk.CTk):
 
 	def __device_button(self):
 		if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-			self.toplevel_window = DeviceWindow(self, self.application_message_dispatcher, self.app_theme)
+			self.toplevel_window = DeviceWindow(self, self.app_theme)
 		elif self.toplevel_window.state() == "iconic":
 			self.toplevel_window.deiconify()
 			self.toplevel_window.focus()
@@ -571,36 +570,11 @@ class MainApplication(ctk.CTk):
 	def __sweep_button(self):
 		print("sweep button")
 
-	def start_value_reader(self):
-		print("Starting value reader")
-		self.updating_values = True
-		self.__read_value_from_device()
-		pass
-
-	def stop_value_reader(self):
-		print("Stopping value reader")
-		self.updating_values = False
-		pass
-
-	def __read_value_from_device(self):
-		# Read value from device
-		try:
-			self.client.read_data("51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B".lower(), self.__on_data_read)
-		except Exception as e:
-			print(e)
-			self.updating_values = False
-
-		# Schedule the read value function every 1 second
-		if self.updating_values:
-			self.after(1000, self.__read_value_from_device)
-
-	def __on_data_read(self, data, error):
+	def __on_data_read(self, data):
 		# Data is a string like "x,y", where x and y are the values to plot (for testing)
-		#Convert bytearray (data) to str
-		string_data = data.decode("utf-8")
+		print("EVENT Data read:", data)
 
-		split_data = string_data.split(",")
-		y = split_data[1]
+		y = data.decode("utf-8")
 
 		# Parse y as a value, 0 if it's not possible
 
@@ -610,8 +584,6 @@ class MainApplication(ctk.CTk):
 			y_value = 0.0
 
 		self.add_graph_value(len(self.graph_values), y_value)
-
-		pass
 
 
 

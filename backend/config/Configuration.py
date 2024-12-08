@@ -24,8 +24,8 @@ class Configuration:
 		# Create a default configuration file
 		config_map = {
 			"BLE_MAPPINGS": {
-				"DEVICE_BASE_SERVICE_UUID": "a07498ca-ad5b-474e-940d-16f1fbe7e8cd",
-				"FREQUENCY_BLE_UUID": "a07498ca-ad5b-474e-940d-16f1fbe7e8cd",
+				"DEVICE_BASE_SERVICE_UUID": 0x1809,
+				"FREQUENCY_BLE_UUID": "00002a1c-0000-1000-8000-00805f9b34fb",
 				"VOLTAGE_BLE_UUID": "a07498ca-ad5b-474e-940d-16f1fbe7e8cd",
 				"CURRENT_BLE_UUID": "a07498ca-ad5b-474e-940d-16f1fbe7e8cd",
 			}

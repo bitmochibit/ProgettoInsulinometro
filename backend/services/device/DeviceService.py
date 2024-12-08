@@ -25,3 +25,20 @@ class DeviceService(ABC):
 	@abstractmethod
 	def is_connected(self) -> bool:
 		pass
+
+
+	@abstractmethod
+	async def connect_async(self, device: DeviceInfo):
+		pass
+
+	@abstractmethod
+	async def disconnect_async(self):
+		pass
+
+	@abstractmethod
+	async def write_data_async(self, device_property: DeviceProperty, data: Any):
+		pass
+
+	@abstractmethod
+	async def read_data_async(self, device_property: DeviceProperty) -> Any:
+		pass

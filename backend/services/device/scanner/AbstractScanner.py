@@ -11,7 +11,7 @@ class AbstractScanner(ABC):
 		pass
 
 	@abstractmethod
-	def start_scan(self, max_time):
+	def start_scan(self):
 		pass
 
 	@abstractmethod

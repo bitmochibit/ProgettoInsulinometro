@@ -5,7 +5,7 @@ import customtkinter as ctk
 from customtkinter import CTkFont, CTkFrame, CTkLabel
 from eventpy.eventdispatcher import EventDispatcher
 
-from app.events.ApplicationMessagesEnum import ApplicationMessagesEnum
+from backend.events.ApplicationMessagesEnum import ApplicationMessagesEnum
 from app.templates.SearchBar import SearchBar
 from app.theme.AppTheme import AppTheme
 from app.utils.Color import scale_lightness
@@ -15,6 +15,7 @@ from backend.controller.device.ScannerController import ScannerController
 from backend.device.info.BLEDeviceInfo import BLEDeviceInfo
 from backend.device.info.DeviceInfo import DeviceInfo
 from backend.device.info.SerialDeviceInfo import SerialDeviceInfo
+from backend.events.EventBus import EventBus
 
 
 def format_info(device_info: DeviceInfo) -> Dict[str, str]:
@@ -29,6 +30,10 @@ def format_info(device_info: DeviceInfo) -> Dict[str, str]:
 		device_name = device_name or "Dispositivo seriale senza nome"
 		device_description += f" | Porta: {device_info.name}"
 
+	# Trim device description to max 20 characters
+
+	device_description = device_description[:50] + "..."
+
 	return {"name": device_name, "description": device_description}
 
 
@@ -36,12 +41,10 @@ class DeviceWindow(ctk.CTkToplevel):
 	def __init__(
 			self,
 			master: ctk.CTk,
-			application_message_dispatcher: EventDispatcher,
 			app_theme: AppTheme = AppTheme()):
 		super().__init__(master, fg_color=app_theme.primary_background)
 
 		self.master = master
-		self.application_messanger = application_message_dispatcher
 		self.app_theme = app_theme
 
 		# This object maps an element box to the ID of the device
@@ -55,6 +58,10 @@ class DeviceWindow(ctk.CTkToplevel):
 		# Scanner controllers
 		self.ble_scanner: ScannerController = Container.device_container.ble_scanner_controller()
 		self.serial_scanner: ScannerController = Container.device_container.serial_scanner_controller()
+
+		# On close event
+		self.protocol("WM_DELETE_WINDOW", self.__on_close)
+
 
 		self.__initialize_window()
 		self.__start_scan()
@@ -264,21 +271,20 @@ class DeviceWindow(ctk.CTkToplevel):
 			return print(f"Unable to connect to device, {error}")
 
 		self.__remove_device_box(device_info)
-		self.__create_device_box(device_info, self.connected_device_container)
-		self.application_messanger.dispatch(ApplicationMessagesEnum.START_VALUE_READER)
+		self.after(200, self.__create_device_box, device_info, self.connected_device_container)
+
 
 	def __handle_disconnection(self, device_info: DeviceInfo, error=None):
 		if error is not None:
 			return print(f"Unable to disconnect, {error}")
 
-
 		self.__remove_device_box(device_info)
-		self.__create_device_box(device_info, self.__get_device_container(device_info))
-		self.application_messanger.dispatch(ApplicationMessagesEnum.STOP_VALUE_READER)
+		self.after(200, self.__create_device_box, device_info, self.__get_device_container(device_info))
+
 
 	def __start_scan(self):
-		self.ble_scanner.start_scan(60)
-		self.serial_scanner.start_scan(60)
+		self.ble_scanner.start_scan()
+		self.serial_scanner.start_scan()
 
 		self.__update_devices()
 
@@ -311,3 +317,7 @@ class DeviceWindow(ctk.CTkToplevel):
 				self.__remove_device_box(removed_device)
 
 		self.after(1000, self.__update_devices)
+
+	def __on_close(self):
+		self.__stop_scan()
+		self.destroy()

@@ -3,7 +3,7 @@ from typing import Dict
 
 from bleak import BLEDevice, AdvertisementData, BleakScanner
 
-from backend.EventLoopProvider import EventLoopProvider
+from backend.Scheduler import Scheduler
 from backend.device.info.BLEDeviceInfo import BLEDeviceInfo
 from backend.services.device.scanner.AbstractScanner import AbstractScanner
 
@@ -16,7 +16,6 @@ class BLEScanner(AbstractScanner):
 	def __init__(self):
 		self.device_dict: Dict[str, BLEDeviceInfo] = {}
 		self.scanning = False
-		self.loop = EventLoopProvider.get_event_loop()
 		self.scan_time = 0
 		self.scan_interval = 0.1
 
@@ -27,24 +26,17 @@ class BLEScanner(AbstractScanner):
 		else:
 			self.device_dict[device.address] = BLEDeviceInfo.from_device(device, advertisement_data)
 
-	def start_scan(self, max_time):
+	def start_scan(self):
 		self.scanning = True
-		asyncio.run_coroutine_threadsafe(self.run_scan(max_time), self.loop)
+		Scheduler().run_async(self.run_scan(), None, None)
 
 	def stop_scan(self):
 		self.scanning = False
 
-	async def run_scan(self, max_time):
+	async def run_scan(self):
 		self.device_dict.clear()
 		self.scan_time = 0
 		async with BleakScanner(self.on_discover) as scanner:
 			print("Starting BLE scan...")
-			while self.scanning:
-				if self.scan_time > max_time:
-					await scanner.stop()
-					self.scanning = False
-
-				await asyncio.sleep(self.scan_interval)  # Keep scanning until stopped
-				self.scan_time += self.scan_interval
 
 		print("Stopping BLE scan...")
