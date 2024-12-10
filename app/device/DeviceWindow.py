@@ -5,6 +5,7 @@ import customtkinter as ctk
 from customtkinter import CTkFont, CTkFrame, CTkLabel
 from eventpy.eventdispatcher import EventDispatcher
 
+from backend.AppState import AppState
 from backend.events.ApplicationMessagesEnum import ApplicationMessagesEnum
 from app.templates.SearchBar import SearchBar
 from app.theme.AppTheme import AppTheme
@@ -52,6 +53,8 @@ class DeviceWindow(ctk.CTkToplevel):
 		self.searched_var = ctk.StringVar()
 		self.devices: Dict[str, DeviceInfo] = {}
 
+		self.app_state = AppState()
+
 		# Device controller
 		self.device_controller: DeviceController = Container.device_container.device_controller()
 
@@ -72,6 +75,12 @@ class DeviceWindow(ctk.CTkToplevel):
 
 		self.__setup_search_bar(self.base)
 		self.__setup_device_containers(self.base)
+
+		# Display the currently connected device (if any) from AppState
+		current_connected_device = self.app_state.connected_device
+		if current_connected_device:
+			self.devices[current_connected_device.id] = current_connected_device
+			self.__create_device_box(current_connected_device, self.connected_device_container)
 
 		self.geometry(self.__center_window())
 
@@ -292,9 +301,11 @@ class DeviceWindow(ctk.CTkToplevel):
 		self.ble_scanner.stop_scan()
 		self.serial_scanner.stop_scan()
 
+
 	def __update_devices(self):
 		# Inside each of client, there's a scanner which contains the list of devices (and eventually they get updated)
 		scanned_devices = {**self.ble_scanner.get_devices(), **self.serial_scanner.get_devices()}
+
 
 		for scanned_id, scanned_device in scanned_devices.items():
 			# Check if the id is already in the list of devices
