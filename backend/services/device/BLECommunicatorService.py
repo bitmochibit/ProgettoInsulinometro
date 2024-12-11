@@ -22,18 +22,20 @@ PROPERTY_MAPPING = {
 	DeviceProperty.FREQUENCY: config.read_ble_mapping(BLEMapping.FREQUENCY_BLE_UUID),
 	DeviceProperty.PHASE: config.read_ble_mapping(BLEMapping.PHASE_BLE_UUID),
 	DeviceProperty.MODULE: config.read_ble_mapping(BLEMapping.MODULE_BLE_UUID),
-	"DEVICE_BASE_SERVICE": config.read_ble_mapping(BLEMapping.DEVICE_BASE_SERVICE_UUID)
+	"DEVICE_BASE_SERVICE": config.read_ble_mapping(BLEMapping.DEVICE_BASE_SERVICE_UUID),
+	DeviceProperty.COMMAND: config.read_ble_mapping(BLEMapping.COMMAND_CHARACTERISTIC_UUID)
 }
 
 
 class BLECommunicatorService(DeviceService):
 	def __init__(self):
-		self.bleak_client: Optional[BleakClient]
-		self.scanner = BLEScanner()
+		self.bleak_client: Optional[BleakClient] = None
 		self.app_state = AppState()
 
 	@property
 	def _is_connected(self):
+		if not self.bleak_client:
+			return False
 		return self.bleak_client.is_connected
 
 	def connect(self, device: DeviceInfo, callback: Callable[[DeviceInfo, Any], None] = None):
@@ -83,6 +85,9 @@ class BLECommunicatorService(DeviceService):
 			print("Device is not connected")
 			return
 
+		# print every device characteristic
+
+		print(f"Writing data {data} to device {device_property}")
 		await self.bleak_client.write_gatt_char(PROPERTY_MAPPING[device_property], data)
 		print(f"Data {data} written to device")
 
@@ -94,6 +99,9 @@ class BLECommunicatorService(DeviceService):
 			last_device = self.app_state.last_connected_device
 			print(
 				f"Disconnected from device {last_device.id} (Named {last_device.name})")
+			return last_device
+		else:
+			raise Exception("No device connected")
 
 	async def connect_async(self, device: DeviceInfo):
 		"""Async method to establish a connection to a BLE device."""

@@ -38,5 +38,7 @@ class BLEScanner(AbstractScanner):
 		self.scan_time = 0
 		async with BleakScanner(self.on_discover) as scanner:
 			print("Starting BLE scan...")
+			while self.scanning:
+				await asyncio.sleep(self.scan_interval)
 
 		print("Stopping BLE scan...")

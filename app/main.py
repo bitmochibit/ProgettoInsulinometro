@@ -574,7 +574,14 @@ class MainApplication(ctk.CTk):
 		# Data is a string like "x,y", where x and y are the values to plot (for testing)
 		print("EVENT Data read:", data)
 
-		y = data.decode("utf-8")
+		if len(data) != 4:
+			print("Invalid data format")
+			return
+
+		if isinstance(data, bytearray):
+			y = int.from_bytes(data, byteorder='little')
+		else:
+			y = data.decode("utf-8")
 
 		# Parse y as a value, 0 if it's not possible
 

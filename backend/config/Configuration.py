@@ -2,7 +2,7 @@ import os
 import yaml
 
 from backend.config.ConfigValue import BLEMapping
-
+from backend.utils.BLEAddressFormatter import from_hex
 
 
 class Configuration:
@@ -24,10 +24,11 @@ class Configuration:
 		# Create a default configuration file
 		config_map = {
 			"BLE_MAPPINGS": {
-				"DEVICE_BASE_SERVICE_UUID": 0x1809,
-				"FREQUENCY_BLE_UUID": "00002a1c-0000-1000-8000-00805f9b34fb",
+				"DEVICE_BASE_SERVICE_UUID": from_hex(0x1809),
+				"FREQUENCY_BLE_UUID": from_hex(0x2A1C),
 				"VOLTAGE_BLE_UUID": "a07498ca-ad5b-474e-940d-16f1fbe7e8cd",
 				"CURRENT_BLE_UUID": "a07498ca-ad5b-474e-940d-16f1fbe7e8cd",
+				"COMMAND_CHARACTERISTIC_UUID": from_hex(0x2A56)
 			}
 		}
 		with open(self.config_file_path, 'w') as file:

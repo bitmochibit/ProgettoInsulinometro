@@ -6,4 +6,5 @@ class DeviceProperty(Enum):
 	FREQUENCY = 2,
 	PHASE = 3,
 	MODULE = 4,
+	COMMAND = 5,
 

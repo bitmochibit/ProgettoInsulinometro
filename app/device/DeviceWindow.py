@@ -308,6 +308,7 @@ class DeviceWindow(ctk.CTkToplevel):
 
 
 		for scanned_id, scanned_device in scanned_devices.items():
+
 			# Check if the id is already in the list of devices
 			# (if it is, update the device info if the current update_time is greater than the one stored), otherwise add it
 

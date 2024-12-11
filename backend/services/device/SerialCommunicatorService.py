@@ -9,7 +9,6 @@ from backend.AppState import AppState
 from backend.Scheduler import Scheduler
 from backend.device.DeviceProperty import DeviceProperty
 from backend.device.info import DeviceInfo
-from backend.device.info.SerialDeviceInfo import SerialDeviceInfo
 
 
 class SerialCommunicatorService(DeviceService):
@@ -48,8 +47,6 @@ class SerialCommunicatorService(DeviceService):
 		pass
 
 	async def write_data_async(self, device_property: DeviceProperty, data: Any):
-		#TODO: Handle DeviceProperty, since the demo for the serial connection is very simple
-
 		self._serial_device.write(data)
 		await asyncio.sleep(0.1)
 
